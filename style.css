@@ -1,0 +1,17 @@
+.square {
+  background-color: grey;
+  border: 2px solid;
+  box-sizing: border-box;
+  min-height: 30px;
+  line-height: 30px;
+}
+
+#game {
+  display: grid;
+  grid-template-columns: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
+  grid-template-rows: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
+}
+
+.mine {
+  
+}
