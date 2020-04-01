@@ -6,23 +6,24 @@ const view = {
    */
   displayFields(rows) {
     const playGround = document.querySelector('#game')
-    playGround.innerHTML = utility.getRandomNumberArray(rows * 9).map(index => view.getSquareElement(index)).join('')
-  },
-  getSquareElement(index) {
-    return `<div data-index='${index}' class='square'></div>`
+    for (let i = 1; i <= rows; i++) {
+      for (let j = 1; j <= 9; j++) {
+        playGround.innerHTML += `
+          <div data-index='${i}-${j}' class='square'></div>
+        `
+        model.squarePositions.push(`${i}-${j}`)
+      }
+    }
   },
   /**
    * showFieldContent()
    * 更改單一格子的內容，像是顯示數字、地雷，或是海洋。
    */
   showFieldContent(field) {
-    
-    const squares = document.querySelectorAll('.square')
-    squares.forEach(square => {
-      if (square.classList.contains('mine')) {
-        square.classList.add('fas', 'fa-bomb')
-      }
-    })
+    if (model.mines.includes(field.dataset.index)) {
+      field.classList.add('fas', 'fa-bomb', 'open')
+      console.log(field)
+    }
   },
 
   /**
@@ -35,7 +36,12 @@ const view = {
    * showBoard()
    * 遊戲結束時，或是 debug 時將遊戲的全部格子內容顯示出來。
    */
-  showBoard() { }
+  showBoard() {
+    const squares = document.querySelectorAll('.square')
+    squares.forEach(square => {
+      this.showFieldContent(square)
+    })
+  }
 }
 
 const controller = {
@@ -51,7 +57,18 @@ const controller = {
   createGame(numberOfRows, numberOfMines) {
     view.displayFields(numberOfRows)
     controller.setMinesAndFields(numberOfMines)
-    controller.dig()
+
+    const playGround = document.querySelector('#game')
+    playGround.addEventListener('click', e => {
+      if (e.target.classList.contains('open')) {
+        return
+      } else {
+        controller.dig(e.target)
+      }
+    })
+
+    // 右鍵 listen to the contextmenu
+
     console.log(model.mines)
     console.log(model.fields)
   },
@@ -61,17 +78,21 @@ const controller = {
    * 設定格子的內容，以及產生地雷的編號。
    */
   setMinesAndFields(numberOfMines) {
+    //從 squarePositions 隨機選出號碼(避免重複)當作地雷並存入model
+    for (let i = 0; i < numberOfMines;) {
+      let randomIndex = Math.floor(Math.random() * model.rows * 9)
+      let temp = []
+      if (!temp.includes(randomIndex)) {
+        temp.push(randomIndex)
+        model.mines.push(model.squarePositions[randomIndex])
+        i++
+      }
+    }
+    //遍歷所有格子 地雷加上mine 海洋存進fields
     const squares = document.querySelectorAll('.square')
     squares.forEach(square => {
-      if (square.dataset.index < numberOfMines) {
+      if (model.mines.includes(square.dataset.index)) {
         square.classList.add('mine')
-        model.mines.push(square.dataset.index)
-      } else {
-        model.fields.push({
-          type: "number",
-          number: square.dataset.index,
-          isDigged: false
-        })
       }
     })
   },
@@ -83,15 +104,57 @@ const controller = {
    * （計算周圍地雷的數量）
    */
   getFieldData(fieldIdx) {
-    if (fieldIdx.classList) {
+    //解析 fieldIdx
+    const xStr = String(fieldIdx).substring(0, 1)
+    const yStr = String(fieldIdx).substring(2, 3)
+    const xNum = Number(xStr)
+    const yNum = Number(yStr)
+    const p = [
+      `${xNum - 1}-${yNum - 1}`,
+      `${xNum - 1}-${yNum}`,
+      `${xNum - 1}-${yNum + 1}`,
+      `${xNum}-${yNum - 1}`,
+      `${xNum}-${yNum + 1}`,
+      `${xNum + 1}-${yNum - 1}`,
+      `${xNum + 1}-${yNum}`,
+      `${xNum + 1}-${yNum + 1}`
+    ]
 
-    } else {
-      console.log('海洋')
+    const data = []
+    //確認八個格子的位置存在 避免 < 0 或 > 9 再存入陣列
+    switch (yNum) {
+      case 9:
+        p.map(x => {
+          const xStrS = String(x).substring(0, 1)
+          const yStrS = String(x).substring(2, 3)
+          const xNumS = Number(xStrS)
+          const yNumS = Number(yStrS)
+
+          if (xNumS >= 1 && yNumS > 1) {
+            data.push(`${xNumS}-${yNumS}`)
+          }
+        })
+        break
+
+      default:
+        p.map(x => {
+          const xStrS = String(x).substring(0, 1)
+          const yStrS = String(x).substring(2, 3)
+          const xNumS = Number(xStrS)
+          const yNumS = Number(yStrS)
+
+          if ((xNumS >= 1 && xNumS <= 9) && (yNumS >= 1 && yNumS <= 9)) {
+            data.push(`${xNumS}-${yNumS}`)
+          }
+        })
     }
-  },
-  calculateMines() {
+    console.log(data)
+
+    //再從陣列拿出來檢查有沒有在 model.mines
+    //若有 開始計算數量
 
   },
+
 
   /**
    * dig()
@@ -101,30 +164,35 @@ const controller = {
    * 如果是地雷      => 遊戲結束
    */
   dig(field) {
-    const playGround = document.querySelector('#game')
-    playGround.addEventListener('click', event => {
-      if (model.isMine(event.target.dataset.index) !== true) {
-        // //沒踩到地雷的狀況
-        // getFieldData(event.target)
-        // // model fields 更新資料
-        // model.fields
-        // //加上 className open 然後 view 打開
-        // event.target.classList.add('open')
-        // showFieldContent()
-
-
-        console.log(event.target)
-      } else {
-        console.log('GG惹')
-        // showFieldContent()
-      }
-    })
+    //沒踩到地雷的狀況
+    if (model.isMine(field.dataset.index) === false) {
+      controller.getFieldData(field.dataset.index)
+      field.classList.add('open')
+      model.fields.push(
+        {
+          type: "field",
+          number: 0,
+          isDigged: true
+        }
+      )
+      view.showFieldContent(field)
+      console.log(field.dataset.index, model.fields)
+    } else {
+      //踩到地雷的狀況
+      view.showFieldContent(field)
+      //踩到的地雷加上紅色背景
+      field.classList.add('GG')
+      console.log('GG惹')
+      view.showBoard()
+    }
   }
-
   // spreadOcean(field) {}
 }
 
 const model = {
+  rows: 9,
+
+  squarePositions: [],
   /**
    * mines
    * 存放地雷的編號（第幾個格子）
@@ -171,4 +239,4 @@ const utility = {
 }
 
 controller.createGame(9, 10)
-
+// console.log(model.isMine(model.mines[11]))

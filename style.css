@@ -12,6 +12,10 @@
   grid-template-rows: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
 }
 
-.mine {
-  
+.open {
+  background-color: lavender;
+}
+
+.GG {
+  background-color: red;
 }
