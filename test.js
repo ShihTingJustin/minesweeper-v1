@@ -1,4 +1,4 @@
-let fieldIdx = '1-1'
+let fieldIdx = '5-9'
 const xStr = String(fieldIdx).substring(0, 1)
 const yStr = String(fieldIdx).substring(2, 3)
 const xNum = Number(xStr)
@@ -43,3 +43,11 @@ switch (yNum) {
     })
 }
 console.log(data)
+
+function fuck(i) {
+  if (i === 1) {
+    return true
+  } else return false
+}
+
+console.log(fuck(5))

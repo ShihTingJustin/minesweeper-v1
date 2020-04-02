@@ -20,9 +20,17 @@ const view = {
    * 更改單一格子的內容，像是顯示數字、地雷，或是海洋。
    */
   showFieldContent(field) {
-    if (model.mines.includes(field.dataset.index)) {
+    if (field.classList.contains('flag')) {
+      field.classList.add('flag', 'fas', 'fa-flag')
+    } else if (model.mines.includes(field.dataset.index)) {
       field.classList.add('fas', 'fa-bomb', 'open')
       console.log(field)
+    } else if (controller.getFieldData(field.dataset.index) === 0) {
+      //打開時周邊沒地雷 就變成海洋
+      field.classList.add('open', 'ocean')
+    } else {
+      field.classList.add('open')
+      field.innerText = `${model.fieldMineAmount}`
     }
   },
 
@@ -39,10 +47,13 @@ const view = {
   showBoard() {
     const squares = document.querySelectorAll('.square')
     squares.forEach(square => {
-      this.showFieldContent(square)
+      if (square.classList.contains('mine')) {
+        view.showFieldContent(square)
+      }
     })
   }
 }
+
 
 const controller = {
   /**
@@ -60,14 +71,26 @@ const controller = {
 
     const playGround = document.querySelector('#game')
     playGround.addEventListener('click', e => {
-      if (e.target.classList.contains('open')) {
+      if (e.target.classList.contains('open') || e.target.classList.contains('flag')) {
         return
-      } else {
+      } else if (e.target.classList.contains('square')) {
         controller.dig(e.target)
       }
     })
 
-    // 右鍵 listen to the contextmenu
+    playGround.addEventListener('contextmenu', e => {
+      e.preventDefault()  //避免出現選單
+      if (e.target.classList.contains('flag')) {
+        e.target.classList.remove('flag', 'fas', 'fa-flag')
+        console.log('flag removed')
+      } else if (e.target.classList.contains('square')) {
+        e.target.classList.add('flag')
+        view.showFieldContent(e.target)
+        console.log('flag added')
+      } else if (e.target.classList.contains('open')) {
+        return
+      }
+    })
 
     console.log(model.mines)
     console.log(model.fields)
@@ -104,6 +127,41 @@ const controller = {
    * （計算周圍地雷的數量）
    */
   getFieldData(fieldIdx) {
+    //清空
+    model.fieldMineAmount = 0
+
+    //check fieldIdx周圍的位置
+    const data = controller.checkSquareAround(fieldIdx)
+
+    //掃描FieldIdx為中心的九宮格地雷數量
+    data.forEach(squareOfData => {
+      if (model.mines.includes(squareOfData)) {
+        model.fieldMineAmount++
+      }
+    })
+    //console.log(`九宮格內有${model.fieldMineAmount}個地雷`)
+
+    // //遍歷 data 
+    // data.forEach(squareOfData => {
+    //   const squares = document.querySelectorAll('.square')
+    //   squares.forEach(square => {
+    //     if (square.dataset.index === squareOfData) {
+    //       //fieldIdx 存進 model.fields
+    //       model.fields.push(
+    //         {
+    //           type: "field",
+    //           position: square.dataset.index,
+    //           number: model.fieldMineAmount,
+    //           isDigged: true
+    //         }
+    //       )
+    //     }
+    //   })
+    // })
+    return model.fieldMineAmount
+  },
+
+  checkSquareAround(fieldIdx) {
     //解析 fieldIdx
     const xStr = String(fieldIdx).substring(0, 1)
     const yStr = String(fieldIdx).substring(2, 3)
@@ -121,7 +179,9 @@ const controller = {
     ]
 
     const data = []
-    //確認八個格子的位置存在 避免 < 0 或 > 9 再存入陣列
+    //檢查八個格子的位置存在 避免 < 0 或 > 9 再存入陣列
+    //還要檢查格子是否 Open!!!!! 不然會無窮迴圈QQ
+
     switch (yNum) {
       case 9:
         p.map(x => {
@@ -130,7 +190,7 @@ const controller = {
           const xNumS = Number(xStrS)
           const yNumS = Number(yStrS)
 
-          if (xNumS >= 1 && yNumS > 1) {
+          if (xNumS >= 1 && yNumS > 1 && (controller.isSquareOpened(x) === false)) {
             data.push(`${xNumS}-${yNumS}`)
           }
         })
@@ -143,18 +203,30 @@ const controller = {
           const xNumS = Number(xStrS)
           const yNumS = Number(yStrS)
 
-          if ((xNumS >= 1 && xNumS <= 9) && (yNumS >= 1 && yNumS <= 9)) {
+          if ((xNumS >= 1 && xNumS <= 9) && (yNumS >= 1 && yNumS <= 9) && (controller.isSquareOpened(x) === false)) {
             data.push(`${xNumS}-${yNumS}`)
           }
         })
     }
     console.log(data)
-
-    //再從陣列拿出來檢查有沒有在 model.mines
-    //若有 開始計算數量
-
+    return data
   },
 
+  isSquareOpened(squarePosition) {
+    let result
+    const squares = document.querySelectorAll('.square')
+    squares.forEach(square => {
+      if (String(square.dataset.index) === String(squarePosition)) {
+        if (square.classList.contains('open')) {
+          return result = true
+        } else {
+          return result = false
+        }
+      }
+    })
+    return result
+    //忘了有兩層函式 少寫這一行 debug 一整天... 
+  },
 
   /**
    * dig()
@@ -164,19 +236,41 @@ const controller = {
    * 如果是地雷      => 遊戲結束
    */
   dig(field) {
-    //沒踩到地雷的狀況
+    view.showFieldContent(field)
     if (model.isMine(field.dataset.index) === false) {
+      //沒踩到地雷
+      //掃描周圍地雷數量
       controller.getFieldData(field.dataset.index)
-      field.classList.add('open')
+      const mineAround = controller.getFieldData(field.dataset.index)
       model.fields.push(
         {
-          type: "field",
-          number: 0,
+          position: field.dataset.index,
+          type: "number",
+          number: mineAround,
           isDigged: true
         }
       )
-      view.showFieldContent(field)
-      console.log(field.dataset.index, model.fields)
+      //console.log(mineAround, '???')
+      if (mineAround === 0) {
+        //且周圍 地雷=0 就繼續踩
+        console.log('Y')
+        const data = controller.checkSquareAround(field.dataset.index)
+        data.forEach(e => {
+          const squares = document.querySelectorAll('.square')
+          squares.forEach(square => {
+            if (String(square.dataset.index) === String(e)) {
+              controller.dig(square)
+
+            }
+          })
+        })
+      } else {
+        //沒踩到地雷但周圍有地雷
+        controller.getFieldData(field.dataset.index)
+        field.classList.add('open')
+        view.showFieldContent(field)
+        console.log(field.dataset.index, model.fields)
+      }
     } else {
       //踩到地雷的狀況
       view.showFieldContent(field)
@@ -185,12 +279,16 @@ const controller = {
       console.log('GG惹')
       view.showBoard()
     }
+    //console.log(model.fields)
   }
   // spreadOcean(field) {}
 }
 
+
 const model = {
   rows: 9,
+
+  fieldMineAmount: 0,
 
   squarePositions: [],
   /**
@@ -233,10 +331,9 @@ const utility = {
       let randomIndex = Math.floor(Math.random() * (index + 1))
         ;[number[index], number[randomIndex]] = [number[randomIndex], number[index]]
     }
-
     return number
   }
 }
 
 controller.createGame(9, 10)
-// console.log(model.isMine(model.mines[11]))
+//console.log(controller.isSquareOpened('1-2'))
