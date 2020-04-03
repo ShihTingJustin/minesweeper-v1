@@ -68,6 +68,8 @@ const controller = {
   createGame(numberOfRows, numberOfMines) {
     view.displayFields(numberOfRows)
     controller.setMinesAndFields(numberOfMines)
+    controller.setButtons()
+    document.querySelector('.flag-counter').innerHTML = `flags: ${model.flags}`
 
     const playGround = document.querySelector('#game')
     playGround.addEventListener('click', e => {
@@ -76,6 +78,11 @@ const controller = {
       } else if (e.target.classList.contains('square')) {
         controller.dig(e.target)
       }
+
+      if (utility.isWin() === true) {
+        alert('太棒了！你贏了！')
+      }
+      console.log(model.mines.length, model.fields.length)
     })
 
     playGround.addEventListener('contextmenu', e => {
@@ -91,9 +98,7 @@ const controller = {
         return
       }
     })
-
     console.log(model.mines)
-    console.log(model.fields)
   },
 
   /**
@@ -104,20 +109,20 @@ const controller = {
     //從 squarePositions 隨機選出號碼(避免重複)當作地雷並存入model
     for (let i = 0; i < numberOfMines;) {
       let randomIndex = Math.floor(Math.random() * model.rows * 9)
-      let temp = []
-      if (!temp.includes(randomIndex)) {
-        temp.push(randomIndex)
+      if (!model.mines.includes(model.squarePositions[randomIndex])) {
         model.mines.push(model.squarePositions[randomIndex])
+        //遍歷所有格子 號碼有在model.mines的就加上mine
+        const squares = document.querySelectorAll('.square')
+        squares.forEach(square => {
+          if (model.mines.includes(square.dataset.index)) {
+            square.classList.add('mine')
+          }
+        })
         i++
-      }
+      } else if (model.mines.includes(model.squarePositions[randomIndex])) (
+        console.log('有重複的號碼哦')
+      )
     }
-    //遍歷所有格子 地雷加上mine 海洋存進fields
-    const squares = document.querySelectorAll('.square')
-    squares.forEach(square => {
-      if (model.mines.includes(square.dataset.index)) {
-        square.classList.add('mine')
-      }
-    })
   },
 
   /**
@@ -180,7 +185,7 @@ const controller = {
 
     const data = []
     //檢查八個格子的位置存在 避免 < 0 或 > 9 再存入陣列
-    //還要檢查格子是否 Open!!!!! 不然會無窮迴圈QQ
+    //還要檢查格子是否 Open 不然會無窮迴圈QQ
 
     switch (yNum) {
       case 9:
@@ -208,7 +213,7 @@ const controller = {
           }
         })
     }
-    console.log(data)
+    //console.log(data)
     return data
   },
 
@@ -225,7 +230,7 @@ const controller = {
       }
     })
     return result
-    //忘了有兩層函式 少寫這一行 debug 一整天... 
+    //沒注意到有兩層函式 少寫這一行 debug 一整天... 
   },
 
   /**
@@ -242,25 +247,45 @@ const controller = {
       //掃描周圍地雷數量
       controller.getFieldData(field.dataset.index)
       const mineAround = controller.getFieldData(field.dataset.index)
-      model.fields.push(
-        {
-          position: field.dataset.index,
-          type: "number",
-          number: mineAround,
-          isDigged: true
-        }
-      )
-      //console.log(mineAround, '???')
+
+
+      switch (model.fields.length) {
+        case 0:
+          model.fields.push(
+            {
+              position: field.dataset.index,
+              type: "number",
+              number: mineAround,
+              isDigged: true
+            }
+          )
+          console.log(model.fields)
+          break;
+
+        default:
+          if (model.isField(field.dataset.index) === false) {
+            model.fields.push(
+              {
+                position: field.dataset.index,
+                type: "number",
+                number: mineAround,
+                isDigged: true
+              }
+            )
+          }
+          console.log(model.fields)
+      }
+
       if (mineAround === 0) {
         //且周圍 地雷=0 就繼續踩
-        console.log('Y')
         const data = controller.checkSquareAround(field.dataset.index)
+        console.log(data)
         data.forEach(e => {
           const squares = document.querySelectorAll('.square')
           squares.forEach(square => {
-            if (String(square.dataset.index) === String(e)) {
+            if (String(square.dataset.index) === String(e) && !square.classList.contains('open')) {
               controller.dig(square)
-
+              //console.log(model.fields)
             }
           })
         })
@@ -269,28 +294,49 @@ const controller = {
         controller.getFieldData(field.dataset.index)
         field.classList.add('open')
         view.showFieldContent(field)
-        console.log(field.dataset.index, model.fields)
+        //console.log(field.dataset.index, model.fields)
       }
     } else {
       //踩到地雷的狀況
       view.showFieldContent(field)
       //踩到的地雷加上紅色背景
       field.classList.add('GG')
-      console.log('GG惹')
+      alert('噢！你踩到地雷了！')
       view.showBoard()
     }
-    //console.log(model.fields)
+  },
+  setNewGame() {
+    //畫面清空
+    const playGround = document.querySelector('#game')
+        playGround.innerHTML = ``
+    //資料清空
+    model.fieldMineAmount = 0
+    model.squarePosition = []
+    model.mines = []
+    model.fields = []
+  },
+  setButtons() {
+    const newGameBtn = document.querySelector('#New-btn')
+    newGameBtn.addEventListener('click', () => {
+      controller.setNewGame()
+      controller.createGame(9, 10)
+    })
+    
+    const godModeBtn = document.querySelector('#GM-btn')
+    godModeBtn.addEventListener('click', () => view.showBoard())
   }
   // spreadOcean(field) {}
 }
 
 
 const model = {
+  flags: 10,
+
   rows: 9,
 
-  fieldMineAmount: 0,
+  fieldMineAmount: 0,  //暫存九宮格內的地雷數量
 
-  squarePositions: [],
+  squarePositions: [], //暫存格子周圍存在的其他格子
   /**
    * mines
    * 存放地雷的編號（第幾個格子）
@@ -307,6 +353,18 @@ const model = {
    * }
    */
   fields: [],
+
+  isField(fieldIdx) {
+    let result
+    model.fields.forEach(f => {
+      if (f.position === fieldIdx) {
+        result = true
+      } else {
+        result = false
+      }
+    })
+    return result
+  },
 
   /**
    * isMine()
@@ -332,8 +390,18 @@ const utility = {
         ;[number[index], number[randomIndex]] = [number[randomIndex], number[index]]
     }
     return number
+  },
+
+  isWin() {
+    let result
+    if (model.fields.length === (81 - model.mines.length)) {
+      result = true
+    } else {
+      result = false
+    }
+    return result
   }
 }
 
 controller.createGame(9, 10)
-//console.log(controller.isSquareOpened('1-2'))
+//console.log(utility.isWin())
