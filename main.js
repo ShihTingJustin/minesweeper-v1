@@ -27,15 +27,38 @@ const view = {
    */
   showFieldContent(field) {
     if (model.mines.includes(field.dataset.index)) {
+      //顯示地雷
       field.classList.add('fas', 'fa-bomb', 'open')
       console.log(field)
     } else if (controller.getFieldData(field.dataset.index) === 0) {
-      //打開時周邊沒地雷 就變成海洋
+      //打開時周邊沒地雷 顯示海洋
       field.classList.add('open', 'ocean')
     } else {
+      //顯示數字
       field.classList.add('open')
       field.innerText = `${model.fieldMineAmount}`
+      //依據數字搭配不同顏色
+      switch (model.fieldMineAmount) {
+        case 1:
+          field.classList.add('mine1')
+          break
+
+        case 2:
+          field.classList.add('mine2')
+          break
+
+        case 3:
+          field.classList.add('mine3')
+          break
+
+        case 4:
+          field.classList.add('mine4')
+          break
+      }
     }
+  },
+  showFlagCounter() {
+    document.querySelector('.flag-counter').innerHTML = `flags: ${model.mines.length - model.flags.length}`
   },
 
   /**
@@ -53,6 +76,11 @@ const view = {
     squares.forEach(square => {
       if (square.classList.contains('mine')) {
         square.classList.add('fas', 'fa-bomb')
+        if (square.classList.contains('flag')) {
+          square.classList.remove('fa-flag', 'fa-bomb')
+          square.classList.add('fas', 'fa-times')
+          square.setAttribute('data-fa-mask', 'fas fa-bomb')
+        }
       }
     })
   }
@@ -71,16 +99,14 @@ const controller = {
    *   4. 綁定事件監聽器到格子上
    */
   createGame(numberOfRows, numberOfMines) {
-    controller.currentState = GAME_STATE.Playing
     view.displayFields(numberOfRows)
     controller.setMinesAndFields(numberOfMines)
-    document.querySelector('.flag-counter').innerHTML = `flags: ${model.flags}`
     controller.setMouseEvent()
-    console.log(model.mines)
+    console.log(model.mines, controller.currentState)
   },
   setMouseEvent() {
     const playGround = document.querySelector('#game')
-    playGround.addEventListener('click', e => {
+    const leftClick = function (e) {
       if (e.target.classList.contains('open') || e.target.classList.contains('flag')) {
         return
       } else if (e.target.classList.contains('square')) {
@@ -90,22 +116,35 @@ const controller = {
       if (utility.isWin() === true) {
         controller.currentState = GAME_STATE.Win
         alert('Great Job! You Win!!!')
+        view.showBoard()
+        controller.setMouseEvent()
       }
       console.log(model.mines.length, model.fields.length)
-    })
-
-    playGround.addEventListener('contextmenu', e => {
+    }
+    const rightClick = function (e) {
       e.preventDefault()  //避免出現選單
-      if (e.target.classList.contains('open')) {
-        return
-      } else if (e.target.classList.contains('flag')) {
-        e.target.classList.remove('flag', 'fas', 'fa-flag')
-        console.log('flag removed', model.fields)
-      } else if (!e.target.classList.contains('flag')) {
-        e.target.classList.add('flag', 'fas', 'fa-flag')
-        console.log('flag added', model.fields)
-      }
-    })
+      controller.flag(e.target)
+    }
+
+    switch (controller.currentState) {
+      case GAME_STATE.Playing:
+        console.log(139)
+        playGround.addEventListener('click', leftClick)
+        playGround.addEventListener('contextmenu', rightClick)
+        break;
+      // 無法移除監聽器 不知道為什麼...
+      // case GAME_STATE.Win:
+      //   console.log(145)
+      //   playGround.removeEventListener('click', leftClick)
+      //   playGround.removeEventListener('contextmenu', rightClick)
+      //   break;
+
+      // case GAME_STATE.Lose:
+      //   console.log(151)
+      //   playGround.removeEventListener('click', leftClick)
+      //   playGround.removeEventListener('contextmenu', rightClick)
+      //   break;
+    }
   },
 
   /**
@@ -128,6 +167,7 @@ const controller = {
         i++
       }
     }
+    view.showFlagCounter()
   },
 
   /**
@@ -137,31 +177,20 @@ const controller = {
    * （計算周圍地雷的數量）
    */
   getFieldData(fieldIdx) {
-    //清空
-    model.fieldMineAmount = 0
-    //check fieldIdx周圍的格子
-    const data = controller.checkSquareAround(fieldIdx)
-    //掃描FieldIdx周圍的地雷數量
-    data.forEach(square => {
-      if (model.mines.includes(square)) {
-        model.fieldMineAmount++
-      }
-    })
-    //將格子資料更新到model
-    switch (model.fields.length) {
-      case 0:
-        model.fields.push(
-          {
-            position: fieldIdx,
-            type: "number",
-            number: model.fieldMineAmount,
-            isDigged: true
-          }
-        )
-        break;
-
-      default:
-        if (model.isField(fieldIdx) === false) {
+    if (controller.currentState === GAME_STATE.Playing) {
+      //清空
+      model.fieldMineAmount = 0
+      //check fieldIdx周圍的格子
+      const data = utility.checkSquareAround(fieldIdx)
+      //掃描FieldIdx周圍的地雷數量
+      data.forEach(square => {
+        if (model.mines.includes(square)) {
+          model.fieldMineAmount++
+        }
+      })
+      //將格子資料更新到model
+      switch (model.fields.length) {
+        case 0:
           model.fields.push(
             {
               position: fieldIdx,
@@ -170,12 +199,180 @@ const controller = {
               isDigged: true
             }
           )
-        }
+          break;
+
+        default:
+          if (model.isField(fieldIdx) === false) {
+            model.fields.push(
+              {
+                position: fieldIdx,
+                type: "number",
+                number: model.fieldMineAmount,
+                isDigged: true
+              }
+            )
+          }
+      }
+      console.log(model.fields)
+      return model.fieldMineAmount
+    } else {
+      return
     }
-    console.log(model.fields)
-    return model.fieldMineAmount
   },
 
+  /**
+   * dig()
+   * 使用者挖格子時要執行的函式，
+   * 會根據挖下的格子內容不同，執行不同的動作，
+   * 如果是號碼或海洋 => 顯示格子
+   * 如果是地雷      => 遊戲結束
+   */
+  dig(field) {
+    switch (controller.currentState) {
+      case GAME_STATE.Playing:
+        if (!field.classList.contains('flag')) {
+          view.showFieldContent(field)
+          if (model.isMine(field.dataset.index) === false) {
+            controller.getFieldData(field.dataset.index)
+            //掃描周圍地雷數量
+            if (model.fieldMineAmount === 0) {
+              //沒踩到地雷且周圍 地雷=0 就繼續踩周圍可以踩的格子
+              const data = utility.checkSquareAround(field.dataset.index)
+              data.forEach(e => {
+                const squares = document.querySelectorAll('.square')
+                squares.forEach(square => {
+                  if (String(square.dataset.index) === String(e) && !square.classList.contains('open')) {
+                    controller.dig(square)
+                  }
+                })
+              })
+            } else {
+              //沒踩到地雷但周圍有地雷
+              controller.getFieldData(field.dataset.index)
+              view.showFieldContent(field)
+            }
+          } else {
+            //踩到地雷的狀況
+            view.showFieldContent(field)
+            //踩到的地雷加上紅色背景
+            field.classList.add('GG')
+            controller.currentState = GAME_STATE.Lose
+            alert("Oh No, It's a mine! Sorry for that...")
+            view.showBoard()
+            controller.setMouseEvent()
+          }
+          break;
+        }
+      default:
+        return  //遊戲結束就不要挖
+    }
+  },
+  flag(field) {
+    switch (controller.currentState) {
+      case GAME_STATE.Playing:
+        if (field.classList.contains('open')) {
+          return
+        } else if (field.classList.contains('flag')) {
+          field.classList.remove('flag', 'fas', 'fa-flag')
+          if (model.flags.includes(String(field.dataset.index))) {
+            const idx = model.flags.indexOf(String(field.dataset.index))
+            model.flags.splice(idx, 1)
+            view.showFlagCounter()
+            console.log('flag removed', model.flags)
+          }
+        } else if (!field.classList.contains('flag')) {
+          field.classList.add('flag', 'fas', 'fa-flag')
+          model.flags.push(field.dataset.index)
+          view.showFlagCounter()
+          console.log('flag added', model.flags)
+        }
+      default:
+        return  //遊戲結束就不能插旗
+    }
+  },
+  getSettings() {
+    const newGameBtn = document.querySelector('#New-btn')
+    newGameBtn.addEventListener('click', () => {
+      utility.cleanLastGameData()
+      controller.currentState = GAME_STATE.Playing
+      alert('New Game Start!')
+      controller.createGame(9, 10)
+    })
+
+    const godModeBtn = document.querySelector('#GM-btn')
+    godModeBtn.addEventListener('click', () => {
+      switch (controller.currentState) {
+        case GAME_STATE.Lose:
+          alert("God Can't Help You, Please Start a New Game...")
+          break
+
+        case GAME_STATE.Win:
+          alert("You Are Winner, Please Don't Bother God !!!")
+          break
+
+        default:
+          view.showBoard()
+          alert('Now You See All the Mines !!!')
+      }
+    })
+  }
+}
+
+
+const model = {
+  flags: [],
+
+  rows: 9,
+
+  fieldMineAmount: 0,  //暫存九宮格內的地雷數量
+
+  squarePositions: [], //遊戲開始時存入全部格子 之後用來暫存格子周圍存在的其他格子
+  /**
+   * mines
+   * 存放地雷的編號（第幾個格子）
+   */
+  mines: [],
+  /**
+   * fields
+   * 存放格子內容，這裡同學可以自行設計格子的資料型態，
+   * 例如：
+   * {
+   *   type: "number",
+   *   number: 1,
+   *   isDigged: false
+   * }
+   */
+  fields: [],
+
+  isField(fieldIdx) {      // 用來判斷格子有沒有存入 model.fields
+    let result
+    model.fields.forEach(f => {
+      if (f.position === fieldIdx) {
+        result = true
+      } else {
+        result = false
+      }
+    })
+    return result
+  },
+
+  /**
+   * isMine()
+   * 輸入一個格子編號，並檢查這個編號是否是地雷
+   */
+  isMine(fieldIdx) {
+    return this.mines.includes(String(fieldIdx))
+  }
+}
+
+const utility = {
+  /**
+   * getRandomNumberArray()
+   * 取得一個隨機排列的、範圍從 0 到 count參數 的數字陣列。
+   * 例如：
+   *   getRandomNumberArray(4)
+   *     - [3, 0, 1, 2]
+   */
   checkSquareAround(fieldIdx) {
     //解析 fieldIdx
     const xStr = String(fieldIdx).substring(0, 1)
@@ -224,131 +421,6 @@ const controller = {
     }
     //console.log(data)
     return data
-  },
-
-  /**
-   * dig()
-   * 使用者挖格子時要執行的函式，
-   * 會根據挖下的格子內容不同，執行不同的動作，
-   * 如果是號碼或海洋 => 顯示格子
-   * 如果是地雷      => 遊戲結束
-   */
-  dig(field) {
-    view.showFieldContent(field)
-    if (model.isMine(field.dataset.index) === false) {
-      controller.getFieldData(field.dataset.index)
-      //掃描周圍地雷數量
-      if (model.fieldMineAmount === 0) {
-        //沒踩到地雷且周圍 地雷=0 就繼續踩周圍可以踩的格子
-        const data = controller.checkSquareAround(field.dataset.index)
-        data.forEach(e => {
-          const squares = document.querySelectorAll('.square')
-          squares.forEach(square => {
-            if (String(square.dataset.index) === String(e) && !square.classList.contains('open')) {
-              controller.dig(square)
-            }
-          })
-        })
-      } else {
-        //沒踩到地雷但周圍有地雷
-        controller.getFieldData(field.dataset.index)
-        view.showFieldContent(field)
-      }
-    } else {
-      //踩到地雷的狀況
-      view.showFieldContent(field)
-      //踩到的地雷加上紅色背景
-      field.classList.add('GG')
-      alert("Oh No, It's a mine! Sorry for that...")
-      view.showBoard()
-      controller.currentState = GAME_STATE.Lose
-    }
-  },
-  getSettings() {
-    const newGameBtn = document.querySelector('#New-btn')
-    newGameBtn.addEventListener('click', () => {
-      utility.cleanLastGameData()
-      controller.currentState === GAME_STATE.Playing
-      alert('New Game Start!')
-      controller.createGame(9, 10)
-    })
-
-    const godModeBtn = document.querySelector('#GM-btn')
-    godModeBtn.addEventListener('click', () => {
-      if (controller.currentState === GAME_STATE.Lose) {
-        alert("God Can't Help You, Please Start a New Game...")
-      } else if (controller.currentState === GAME_STATE.Win) {
-        alert("You Are Winner, Please Don't Bother God !!!")
-      } else {
-        view.showBoard()
-        alert('Now You See All the Mines !!!')
-      }
-    })
-  }
-}
-
-
-const model = {
-  flags: 10,
-
-  rows: 9,
-
-  fieldMineAmount: 0,  //暫存九宮格內的地雷數量
-
-  squarePositions: [], //暫存格子周圍存在的其他格子
-  /**
-   * mines
-   * 存放地雷的編號（第幾個格子）
-   */
-  mines: [],
-  /**
-   * fields
-   * 存放格子內容，這裡同學可以自行設計格子的資料型態，
-   * 例如：
-   * {
-   *   type: "number",
-   *   number: 1,
-   *   isDigged: false
-   * }
-   */
-  fields: [],
-
-  isField(fieldIdx) {      // 用來判斷格子有沒有存入 model.fields
-    let result
-    model.fields.forEach(f => {
-      if (f.position === fieldIdx) {
-        result = true
-      } else {
-        result = false
-      }
-    })
-    return result
-  },
-
-  /**
-   * isMine()
-   * 輸入一個格子編號，並檢查這個編號是否是地雷
-   */
-  isMine(fieldIdx) {
-    return this.mines.includes(String(fieldIdx))
-  }
-}
-
-const utility = {
-  /**
-   * getRandomNumberArray()
-   * 取得一個隨機排列的、範圍從 0 到 count參數 的數字陣列。
-   * 例如：
-   *   getRandomNumberArray(4)
-   *     - [3, 0, 1, 2]
-   */
-  getRandomNumberArray(count) {
-    const number = [...Array(count).keys()]
-    for (let index = number.length - 1; index > 0; index--) {
-      let randomIndex = Math.floor(Math.random() * (index + 1))
-        ;[number[index], number[randomIndex]] = [number[randomIndex], number[index]]
-    }
-    return number
   },
   isSquareOpened(squarePosition) {    //判斷格子有沒有打開
     let result

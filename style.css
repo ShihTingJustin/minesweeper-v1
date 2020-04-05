@@ -60,3 +60,19 @@ body {
 .ocean {
   background-color: royalblue;
 }
+
+.mine1 {
+  color: royalblue;
+}
+
+.mine2 {
+  color: green;
+}
+
+.mine3, .fa-times {
+  color: red;
+}
+
+.mine4 {
+  color: black;
+}
