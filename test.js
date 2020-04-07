@@ -1,53 +1,24 @@
-let fieldIdx = '5-9'
-const xStr = String(fieldIdx).substring(0, 1)
-const yStr = String(fieldIdx).substring(2, 3)
-const xNum = Number(xStr)
-const yNum = Number(yStr)
-const p = [
-  `${xNum - 1}-${yNum - 1}`,
-  `${xNum - 1}-${yNum}`,
-  `${xNum - 1}-${yNum + 1}`,
-  `${xNum}-${yNum - 1}`,
-  `${xNum}-${yNum + 1}`,
-  `${xNum + 1}-${yNum - 1}`,
-  `${xNum + 1}-${yNum}`,
-  `${xNum + 1}-${yNum + 1}`
-]
-const data = []
-console.log(p)
+function startTimer(seconds) {
+  let i
+  const now = Date.now() //取得現在的時間戳記
+  const endTime = Date.now() + seconds * 1000 //結束的時間戳記
+  console.log({
+    now,
+    endTime
+  })
 
-switch (yNum) {
-  case 9:
-    p.map(x => {
-      const xStrS = String(x).substring(0, 1)
-      const yStrS = String(x).substring(2, 3)
-      const xNumS = Number(xStrS)
-      const yNumS = Number(yStrS)
+  const timerId = setInterval(() => {
+    const remainingSeconds = Math.floor(endTime - Date.now())
 
-      if (xNumS >= 1 && yNumS > 1) {
-        data.push(`${xNumS}-${yNumS}`)
-      }
-    })
-    break
-
-  default:
-    p.map(x => {
-      const xStrS = String(x).substring(0, 1)
-      const yStrS = String(x).substring(2, 3)
-      const xNumS = Number(xStrS)
-      const yNumS = Number(yStrS)
-
-      if ((xNumS >= 1 && xNumS <= 9) && (yNumS >= 1 && yNumS <= 9)) {
-        data.push(`${xNumS}-${yNumS}`)
-      }
-    })
-}
-console.log(data)
-
-function fuck(i) {
-  if (i === 1) {
-    return true
-  } else return false
+    console.log(`剩餘時間： ${remainingSeconds}`)
+    if (remainingSeconds < 0) {
+      alert('時間到')
+      clearInterval(timerId)
+      return
+    }
+  }, 1000)
+  console.log(i)
+  i++
 }
 
-console.log(fuck(5))
+startTimer(5)

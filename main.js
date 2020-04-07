@@ -1,4 +1,4 @@
-GAME_STATE = {
+const GAME_STATE = {
   Playing: 'Playing',
   Win: 'Win',
   Lose: 'Lose',
@@ -73,16 +73,28 @@ const view = {
    */
   showBoard() {
     const squares = document.querySelectorAll('.square')
-    squares.forEach(square => {
-      if (square.classList.contains('mine')) {
-        square.classList.add('fas', 'fa-bomb')
-        if (square.classList.contains('flag')) {
-          square.classList.remove('fa-flag', 'fa-bomb')
-          square.classList.add('fas', 'fa-times')
-          square.setAttribute('data-fa-mask', 'fas fa-bomb')
-        }
-      }
-    })
+    switch (controller.currentState) {
+      case GAME_STATE.Playing:
+        squares.forEach(square => {
+          if (square.classList.contains('mine')) {
+            square.classList.add('fas', 'fa-bomb')
+          }
+        })
+        break;
+
+      default:
+        squares.forEach(square => {
+          if (square.classList.contains('mine')) {
+            square.classList.add('fas', 'fa-bomb')
+            if (square.classList.contains('flag')) {
+              //遊戲結束時插在地雷上的旗子會打叉
+              square.classList.remove('fa-flag', 'fa-bomb')
+              square.classList.add('fas', 'fa-times')
+              square.setAttribute('data-fa-mask', 'fas fa-bomb')
+            }
+          }
+        })
+    }
   }
 }
 
@@ -99,52 +111,53 @@ const controller = {
    *   4. 綁定事件監聽器到格子上
    */
   createGame(numberOfRows, numberOfMines) {
+    controller.currentState = GAME_STATE.Playing
     view.displayFields(numberOfRows)
     controller.setMinesAndFields(numberOfMines)
-    controller.setMouseEvent()
     console.log(model.mines, controller.currentState)
   },
-  setMouseEvent() {
-    const playGround = document.querySelector('#game')
-    const leftClick = function (e) {
-      if (e.target.classList.contains('open') || e.target.classList.contains('flag')) {
-        return
-      } else if (e.target.classList.contains('square')) {
-        controller.dig(e.target)
-      }
-
-      if (utility.isWin() === true) {
-        controller.currentState = GAME_STATE.Win
-        alert('Great Job! You Win!!!')
-        view.showBoard()
-        controller.setMouseEvent()
-      }
-      console.log(model.mines.length, model.fields.length)
-    }
-    const rightClick = function (e) {
-      e.preventDefault()  //避免出現選單
-      controller.flag(e.target)
-    }
-
+  leftClick(e) {
     switch (controller.currentState) {
       case GAME_STATE.Playing:
-        console.log(139)
-        playGround.addEventListener('click', leftClick)
-        playGround.addEventListener('contextmenu', rightClick)
+        if (e.target.classList.contains('open') || e.target.classList.contains('flag')) {
+          return
+        } else if (e.target.classList.contains('square')) {
+          controller.dig(e.target)
+        }
         break;
-      // 無法移除監聽器 不知道為什麼...
-      // case GAME_STATE.Win:
-      //   console.log(145)
-      //   playGround.removeEventListener('click', leftClick)
-      //   playGround.removeEventListener('contextmenu', rightClick)
-      //   break;
 
-      // case GAME_STATE.Lose:
-      //   console.log(151)
-      //   playGround.removeEventListener('click', leftClick)
-      //   playGround.removeEventListener('contextmenu', rightClick)
-      //   break;
+      case GAME_STATE.Win:
+        alert('Great Job! You Win!!!')
+        view.showBoard()
+        controller.removeListeners()
+
+      default:
+        return //遊戲結束無法點擊
     }
+    console.log(model.mines.length, model.fields.length)
+  },
+  rightClick(e) {
+    switch (controller.currentState) {
+      case GAME_STATE.Playing:
+        e.preventDefault()  //避免出現選單
+        controller.flag(e.target)
+        break
+
+      default:
+        return //遊戲結束無法點擊
+    }
+  },
+  addListeners() {
+    const playGround = document.querySelector('#game')
+    playGround.addEventListener('click', function L_Click(e) { controller.leftClick(e) })
+    playGround.addEventListener('contextmenu', function R_Click(e) { controller.rightClick(e) })
+    console.log('All Listeners Set')
+  },
+  removeListeners() {
+    const playGround = document.querySelector('#game')
+    playGround.removeEventListener('click', function L_Click(e) { controller.leftClick(e) })
+    playGround.removeEventListener('contextmenu', function R_Click(e) { controller.rightClick(e) })
+    console.log('All Listeners Remove')
   },
 
   /**
@@ -228,73 +241,65 @@ const controller = {
    * 如果是地雷      => 遊戲結束
    */
   dig(field) {
-    switch (controller.currentState) {
-      case GAME_STATE.Playing:
-        if (!field.classList.contains('flag')) {
+    if (!field.classList.contains('flag')) {
+      view.showFieldContent(field)
+      console.log(field)
+      if (model.isMine(field.dataset.index) === false) {
+        controller.getFieldData(field.dataset.index)
+        //掃描周圍地雷數量
+        if (model.fieldMineAmount === 0) {
+          //沒踩到地雷且周圍 地雷=0 就繼續踩周圍可以踩的格子
+          const data = utility.checkSquareAround(field.dataset.index)
+          data.forEach(e => {
+            const squares = document.querySelectorAll('.square')
+            squares.forEach(square => {
+              if (String(square.dataset.index) === String(e) && !square.classList.contains('open')) {
+                controller.dig(square)
+              }
+            })
+          })
+        } else {
+          //沒踩到地雷但周圍有地雷
+          controller.getFieldData(field.dataset.index)
           view.showFieldContent(field)
-          if (model.isMine(field.dataset.index) === false) {
-            controller.getFieldData(field.dataset.index)
-            //掃描周圍地雷數量
-            if (model.fieldMineAmount === 0) {
-              //沒踩到地雷且周圍 地雷=0 就繼續踩周圍可以踩的格子
-              const data = utility.checkSquareAround(field.dataset.index)
-              data.forEach(e => {
-                const squares = document.querySelectorAll('.square')
-                squares.forEach(square => {
-                  if (String(square.dataset.index) === String(e) && !square.classList.contains('open')) {
-                    controller.dig(square)
-                  }
-                })
-              })
-            } else {
-              //沒踩到地雷但周圍有地雷
-              controller.getFieldData(field.dataset.index)
-              view.showFieldContent(field)
-            }
-          } else {
-            //踩到地雷的狀況
-            view.showFieldContent(field)
-            //踩到的地雷加上紅色背景
-            field.classList.add('GG')
-            controller.currentState = GAME_STATE.Lose
-            alert("Oh No, It's a mine! Sorry for that...")
-            view.showBoard()
-            controller.setMouseEvent()
-          }
-          break;
         }
-      default:
-        return  //遊戲結束就不要挖
+      } else {
+        //踩到地雷的狀況
+        view.showFieldContent(field)
+        //踩到的地雷加上紅色背景
+        field.classList.add('GG')
+        controller.currentState = GAME_STATE.Lose
+        alert("Oh No, It's a mine! Sorry for that...")
+        view.showBoard()
+        controller.removeListeners()
+      }
     }
   },
   flag(field) {
-    switch (controller.currentState) {
-      case GAME_STATE.Playing:
-        if (field.classList.contains('open')) {
-          return
-        } else if (field.classList.contains('flag')) {
-          field.classList.remove('flag', 'fas', 'fa-flag')
-          if (model.flags.includes(String(field.dataset.index))) {
-            const idx = model.flags.indexOf(String(field.dataset.index))
-            model.flags.splice(idx, 1)
-            view.showFlagCounter()
-            console.log('flag removed', model.flags)
-          }
-        } else if (!field.classList.contains('flag')) {
-          field.classList.add('flag', 'fas', 'fa-flag')
-          model.flags.push(field.dataset.index)
-          view.showFlagCounter()
-          console.log('flag added', model.flags)
-        }
-      default:
-        return  //遊戲結束就不能插旗
+    console.log(field)
+    if (field.classList.contains('open')) {
+      return
+    } else if (field.classList.contains('flag')) {
+      field.classList.remove('flag', 'fa-flag')
+      if (model.flags.includes(String(field.dataset.index))) {
+        const idx = model.flags.indexOf(String(field.dataset.index))
+        model.flags.splice(idx, 1)
+        console.log('flag removed', model.flags)
+      }
+    } else if (!field.classList.contains('flag')) {
+      field.classList.add('flag', 'fas', 'fa-flag')
+      model.flags.push(field.dataset.index)
+      console.log('flag added', model.flags)
     }
+    view.showFlagCounter()
   },
   getSettings() {
+    controller.addListeners()
+
     const newGameBtn = document.querySelector('#New-btn')
     newGameBtn.addEventListener('click', () => {
       utility.cleanLastGameData()
-      controller.currentState = GAME_STATE.Playing
+      controller.removeListeners() //監聽器要拿掉 因為createGame會綁上
       alert('New Game Start!')
       controller.createGame(9, 10)
     })
@@ -312,9 +317,18 @@ const controller = {
 
         default:
           view.showBoard()
-          alert('Now You See All the Mines !!!')
+          alert('Now You Could See All the Mines !!!')
       }
     })
+  },
+  isWin() {
+    let result
+    if (model.fields.length === (81 - model.mines.length)) {
+      result = true
+    } else {
+      result = false
+    }
+    return result
   }
 }
 
@@ -365,7 +379,11 @@ const model = {
   }
 }
 
+
 const utility = {
+  timer() {
+
+  },
   /**
    * getRandomNumberArray()
    * 取得一個隨機排列的、範圍從 0 到 count參數 的數字陣列。
@@ -446,15 +464,7 @@ const utility = {
     model.squarePosition = []
     model.mines = []
     model.fields = []
-  },
-  isWin() {
-    let result
-    if (model.fields.length === (81 - model.mines.length)) {
-      result = true
-    } else {
-      result = false
-    }
-    return result
+    model.flags = []
   }
 }
 
