@@ -38,35 +38,21 @@ const view = {
       field.classList.add('open')
       field.innerText = `${model.fieldMineAmount}`
       //依據數字搭配不同顏色
-      switch (model.fieldMineAmount) {
-        case 1:
-          field.classList.add('mine1')
-          break
-
-        case 2:
-          field.classList.add('mine2')
-          break
-
-        case 3:
-          field.classList.add('mine3')
-          break
-
-        case 4:
-          field.classList.add('mine4')
-          break
-      }
+      field.classList.add(`mine${model.fieldMineAmount}`)
     }
   },
   showFlagCounter() {
-    document.querySelector('.flag-counter').innerHTML = `flags: ${model.mines.length - model.flags.length}`
+    document.getElementById('flag-counter').innerHTML = `flags: ${model.mines.length - model.flags.length}`
   },
 
   /**
    * renderTime()
    * 顯示經過的遊戲時間在畫面上。
    */
-  renderTime(time) { },
-
+  renderTimer() {
+    const timer = document.getElementById('timer');
+    timer.innerHTML = String(model.timerStartTime).padStart(3, '0');
+  },
   /**
    * showBoard()
    * 遊戲結束時，或是 debug 時將遊戲的全部格子內容顯示出來。
@@ -126,13 +112,15 @@ const controller = {
         }
         break;
 
-      case GAME_STATE.Win:
-        alert('Great Job! You Win!!!')
-        view.showBoard()
-        controller.removeListeners()
-
       default:
         return //遊戲結束無法點擊
+    }
+    if (controller.isWin() === true) {
+      controller.currentState = GAME_STATE.Win
+      alert('Great Job! You Win!!!')
+      view.showBoard()
+      controller.removeListeners()
+      controller.stopTimer()
     }
     console.log(model.mines.length, model.fields.length)
   },
@@ -155,9 +143,15 @@ const controller = {
   },
   removeListeners() {
     const playGround = document.querySelector('#game')
-    playGround.removeEventListener('click', function L_Click(e) { controller.leftClick(e) })
-    playGround.removeEventListener('contextmenu', function R_Click(e) { controller.rightClick(e) })
-    console.log('All Listeners Remove')
+    switch (controller.currentState) {
+      case GAME_STATE.Playing:
+        playGround.removeEventListener('click', function L_Click(e) { controller.leftClick(e) })
+        playGround.removeEventListener('contextmenu', function R_Click(e) { controller.rightClick(e) })
+        console.log('All Listeners Remove')
+
+      default:
+        return
+    }
   },
 
   /**
@@ -241,6 +235,7 @@ const controller = {
    * 如果是地雷      => 遊戲結束
    */
   dig(field) {
+    model.leftClickTimes++
     if (!field.classList.contains('flag')) {
       view.showFieldContent(field)
       console.log(field)
@@ -264,16 +259,34 @@ const controller = {
           view.showFieldContent(field)
         }
       } else {
-        //踩到地雷的狀況
-        view.showFieldContent(field)
-        //踩到的地雷加上紅色背景
-        field.classList.add('GG')
-        controller.currentState = GAME_STATE.Lose
-        alert("Oh No, It's a mine! Sorry for that...")
-        view.showBoard()
-        controller.removeListeners()
+        switch (model.leftClickTimes) {
+          //第一次不會踩到地雷
+          case 1:
+            console.log('you click bomb but give you another chance')
+            controller.firstClickMine(field)
+            break
+
+          default:
+            //踩到地雷的狀況
+            view.showFieldContent(field)
+            //踩到的地雷加上紅色背景
+            field.classList.add('GG')
+            controller.currentState = GAME_STATE.Lose
+            alert("Oh No, It's a mine! Sorry for that...")
+            view.showBoard()
+            controller.removeListeners()
+            controller.stopTimer()
+        }
       }
     }
+  },
+  firstClickMine(field) {
+    //畫面更新
+    field.classList.remove('fa-bomb', 'mine', 'open')
+    //資料更新
+    utility.cleanLastGameData(1)
+    controller.setMinesAndFields(10)
+    controller.dig(field)
   },
   flag(field) {
     console.log(field)
@@ -293,8 +306,29 @@ const controller = {
     }
     view.showFlagCounter()
   },
+  setTimer() {
+    const endTime = 999
+    model.timer = setInterval(() => {
+      model.timerStartTime++
+      view.renderTimer()
+      if (model.timerStartTime === endTime) {
+        clearInterval(model.timer)
+        return
+      }
+    }, 1000)
+
+  },
+  stopTimer() {
+    window.clearInterval(model.timer)
+  },
+  resetTimer() {
+    model.timerStartTime = 0
+    model.timer = 0
+    view.renderTimer()
+  },
   getSettings() {
     controller.addListeners()
+    controller.setTimer()
 
     const newGameBtn = document.querySelector('#New-btn')
     newGameBtn.addEventListener('click', () => {
@@ -302,6 +336,9 @@ const controller = {
       controller.removeListeners() //監聽器要拿掉 因為createGame會綁上
       alert('New Game Start!')
       controller.createGame(9, 10)
+      controller.stopTimer()
+      controller.resetTimer()
+      controller.setTimer()
     })
 
     const godModeBtn = document.querySelector('#GM-btn')
@@ -334,6 +371,8 @@ const controller = {
 
 
 const model = {
+  leftClickTimes: 0,
+
   flags: [],
 
   rows: 9,
@@ -357,6 +396,10 @@ const model = {
    * }
    */
   fields: [],
+
+  timerStartTime: 0,
+
+  timer,
 
   isField(fieldIdx) {      // 用來判斷格子有沒有存入 model.fields
     let result
@@ -455,16 +498,33 @@ const utility = {
     return result
     //沒注意到有兩層函式 少寫這一行 debug 一整天... 
   },
-  cleanLastGameData() {
-    //畫面清空
+  cleanLastGameData(option) {
     const playGround = document.querySelector('#game')
-    playGround.innerHTML = ``
-    //資料清空
-    model.fieldMineAmount = 0
-    model.squarePosition = []
-    model.mines = []
-    model.fields = []
-    model.flags = []
+    switch (option) {
+      case 1:
+        //畫面清空
+        //playGround.innerHTML = ``
+        //資料清空
+        model.fieldMineAmount = 0
+        model.squarePosition = []
+        model.mines = []
+        model.fields = []
+        model.flags = []
+        model.leftClickTimes = 0
+        break
+
+      default:
+        //畫面清空
+        playGround.innerHTML = ``
+        //資料清空
+        model.fieldMineAmount = 0
+        model.squarePosition = []
+        model.mines = []
+        model.fields = []
+        model.flags = []
+        model.timerStartTime = 0
+        model.leftClickTimes = 0
+    }
   }
 }
 
