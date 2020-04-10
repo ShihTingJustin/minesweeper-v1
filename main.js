@@ -1,7 +1,7 @@
 const GAME_STATE = {
   Playing: 'Playing',
   Win: 'Win',
-  Lose: 'Lose',
+  Lose: 'Lose'
 }
 
 const view = {
@@ -10,16 +10,40 @@ const view = {
    * 顯示踩地雷的遊戲版圖在畫面上，
    * 輸入的 rows 是指版圖的行列數。
    */
-  displayFields(rows) {
+  displayFields(rows, columns) {
+    //更新列跟欄的資料
+    model.rows = rows
+    model.columns = columns
+
     const playGround = document.querySelector('#game')
     for (let i = 1; i <= rows; i++) {
-      for (let j = 1; j <= 9; j++) {
+      for (let j = 1; j <= columns; j++) {
         playGround.innerHTML += `
           <div data-index='${i}-${j}' class='square'></div>
         `
         model.squarePositions.push(`${i}-${j}`)
       }
     }
+
+    const style = document.getElementsByTagName('style')[0]
+    let row = ''
+    for (let i = 1; i <= rows; i++) {
+      row += ` 30px`
+    }
+
+    let column = ''
+    for (let i = 1; i <= columns; i++) {
+      column += ` 30px`
+    }
+
+    style.innerHTML = `
+    #game {
+      grid-template-columns: ${column};
+      grid-template-rows: ${row};
+    }
+    `
+    console.log(style)
+
   },
   /**
    * showFieldContent()
@@ -96,18 +120,23 @@ const controller = {
    *   3. 埋地雷 OK
    *   4. 綁定事件監聽器到格子上
    */
-  createGame(numberOfRows, numberOfMines) {
+  createGame(numberOfRows, numberOfColumns, numberOfMines) {
     controller.currentState = GAME_STATE.Playing
-    view.displayFields(numberOfRows)
+    view.displayFields(numberOfRows, numberOfColumns)
     controller.setMinesAndFields(numberOfMines)
     console.log(model.mines, controller.currentState)
   },
   leftClick(e) {
+    model.leftClickTimes++
     switch (controller.currentState) {
       case GAME_STATE.Playing:
         if (e.target.classList.contains('open') || e.target.classList.contains('flag')) {
           return
         } else if (e.target.classList.contains('square')) {
+          //點擊成功一秒後開始計時
+          if (model.leftClickTimes === 1) {
+            setTimeout(controller.setTimer(), 1000)
+          }
           controller.dig(e.target)
         }
         break;
@@ -161,7 +190,7 @@ const controller = {
   setMinesAndFields(numberOfMines) {
     //從 squarePositions 隨機選出號碼(避免重複)當作地雷並存入model
     for (let i = 0; i < numberOfMines;) {
-      let randomIndex = Math.floor(Math.random() * model.rows * 9)
+      let randomIndex = Math.floor(Math.random() * model.rows * model.columns)
       if (!model.mines.includes(model.squarePositions[randomIndex])) {
         model.mines.push(model.squarePositions[randomIndex])
         //遍歷所有格子 號碼有在model.mines的就加上mine
@@ -220,7 +249,7 @@ const controller = {
             )
           }
       }
-      console.log(model.fields)
+      //console.log(model.fields)
       return model.fieldMineAmount
     } else {
       return
@@ -235,10 +264,9 @@ const controller = {
    * 如果是地雷      => 遊戲結束
    */
   dig(field) {
-    model.leftClickTimes++
     if (!field.classList.contains('flag')) {
       view.showFieldContent(field)
-      console.log(field)
+      //console.log(field)
       if (model.isMine(field.dataset.index) === false) {
         controller.getFieldData(field.dataset.index)
         //掃描周圍地雷數量
@@ -261,10 +289,10 @@ const controller = {
       } else {
         switch (model.leftClickTimes) {
           //第一次不會踩到地雷
-          case 1:
-            console.log('you click bomb but give you another chance')
-            controller.firstClickMine(field)
-            break
+          // case 1:
+          //   console.log('you click bomb but give you another chance')
+          //   controller.firstClickMine(field)
+          //   break
 
           default:
             //踩到地雷的狀況
@@ -326,9 +354,16 @@ const controller = {
     model.timer = 0
     view.renderTimer()
   },
+  modalGame() {
+
+  },
   getSettings() {
     controller.addListeners()
-    controller.setTimer()
+
+    const modalSaveBtn = document.querySelector('#modal-save-btn')
+    modalSaveBtn.addEventListener('click', e => {
+
+    })
 
     const newGameBtn = document.querySelector('#New-btn')
     newGameBtn.addEventListener('click', () => {
@@ -338,11 +373,11 @@ const controller = {
       controller.createGame(9, 10)
       controller.stopTimer()
       controller.resetTimer()
-      controller.setTimer()
     })
 
     const godModeBtn = document.querySelector('#GM-btn')
     godModeBtn.addEventListener('click', () => {
+      model.leftClickTimes = 2 //避免跟第一次不會踩到地雷衝突產生bug
       switch (controller.currentState) {
         case GAME_STATE.Lose:
           alert("God Can't Help You, Please Start a New Game...")
@@ -360,7 +395,7 @@ const controller = {
   },
   isWin() {
     let result
-    if (model.fields.length === (81 - model.mines.length)) {
+    if (model.fields.length === (model.rows * model.columns - model.mines.length)) {
       result = true
     } else {
       result = false
@@ -375,7 +410,9 @@ const model = {
 
   flags: [],
 
-  rows: 9,
+  rows: 0,
+
+  columns: 0,
 
   fieldMineAmount: 0,  //暫存九宮格內的地雷數量
 
@@ -399,7 +436,7 @@ const model = {
 
   timerStartTime: 0,
 
-  timer,
+  timer,  //給 timer 用的變數
 
   isField(fieldIdx) {      // 用來判斷格子有沒有存入 model.fields
     let result
@@ -424,7 +461,7 @@ const model = {
 
 
 const utility = {
-  timer() {
+  custom() {
 
   },
   /**
@@ -434,12 +471,37 @@ const utility = {
    *   getRandomNumberArray(4)
    *     - [3, 0, 1, 2]
    */
+
   checkSquareAround(fieldIdx) {
     //解析 fieldIdx
-    const xStr = String(fieldIdx).substring(0, 1)
-    const yStr = String(fieldIdx).substring(2, 3)
-    const xNum = Number(xStr)
-    const yNum = Number(yStr)
+    const idx = fieldIdx.indexOf('-')
+    let reg = /\d/ig
+    let fieldIdxReg = fieldIdx.match(reg)
+    let xNum
+    let yNum
+    //console.log(fieldIdxReg)
+    switch (fieldIdxReg.length) {
+      case 2:
+        xNum = Number(fieldIdxReg[0])
+        yNum = Number(fieldIdxReg[1])
+        break
+
+      case 3:
+        if (idx === 1) {
+          xNum = Number(fieldIdxReg[0])
+          yNum = Number(fieldIdxReg[1] + fieldIdxReg[2])
+        } else if (idx === 2) {
+          xNum = Number(fieldIdxReg[0] + fieldIdxReg[1])
+          yNum = Number(fieldIdxReg[2])
+        }
+        break
+
+      case 4:
+        xNum = Number(fieldIdxReg[0] + fieldIdxReg[1])
+        yNum = Number(fieldIdxReg[2] + fieldIdxReg[3])
+        break
+    }
+    //console.log(xNum, yNum)
     const p = [
       `${xNum - 1}-${yNum - 1}`,
       `${xNum - 1}-${yNum}`,
@@ -450,36 +512,78 @@ const utility = {
       `${xNum + 1}-${yNum}`,
       `${xNum + 1}-${yNum + 1}`
     ]
+    //console.log(p)
 
     const data = []
-    //檢查八個格子的位置存在 避免 < 0 或 > 9 再存入陣列
-    //還要檢查格子是否 Open 不然會無窮迴圈QQ
-    switch (yNum) {
-      case 9:
-        p.map(x => {
-          const xStrS = String(x).substring(0, 1)
-          const yStrS = String(x).substring(2, 3)
-          const xNumS = Number(xStrS)
-          const yNumS = Number(yStrS)
+    p.map(i => {
+      const idx = i.indexOf('-')
+      let iReg = i.match(reg)
+      switch (iReg.length) {
+        case 2:
+          xNum = Number(iReg[0])
+          yNum = Number(iReg[1])
+          switch (yNum) {
+            case (model.columns):
+              //console.log(541)
+              if (xNum >= 1 && yNum > 1 && (utility.isSquareOpened(i) === false)) {
+                data.push(`${xNum}-${yNum}`)
+              }
+              break
 
-          if (xNumS >= 1 && yNumS > 1 && (utility.isSquareOpened(x) === false)) {
-            data.push(`${xNumS}-${yNumS}`)
+            default:
+              //console.log(548)
+              if ((xNum >= 1 && xNum <= model.rows) && (yNum >= 1 && yNum <= model.columns) && (utility.isSquareOpened(i) === false)) {
+                data.push(`${xNum}-${yNum}`)
+              }
+              break
           }
-        })
-        break
 
-      default:
-        p.map(x => {
-          const xStrS = String(x).substring(0, 1)
-          const yStrS = String(x).substring(2, 3)
-          const xNumS = Number(xStrS)
-          const yNumS = Number(yStrS)
-
-          if ((xNumS >= 1 && xNumS <= 9) && (yNumS >= 1 && yNumS <= 9) && (utility.isSquareOpened(x) === false)) {
-            data.push(`${xNumS}-${yNumS}`)
+        case 3:
+          if (idx === 1) {
+            xNum = Number(iReg[0])
+            yNum = Number(iReg[1] + iReg[2])
+          } else if (idx === 2) {
+            xNum = Number(iReg[0] + iReg[1])
+            yNum = Number(iReg[2])
           }
-        })
-    }
+          //console.log(xNum, yNum)
+          switch (yNum) {
+            case (model.columns):
+              //console.log(565)
+              if ((xNum >= 1 && xNum <= model.rows) && (yNum >= 1 && yNum <= model.columns) && (utility.isSquareOpened(i) === false)) {
+                data.push(`${xNum}-${yNum}`)
+              }
+              break
+
+            default:
+              //console.log(572)
+              if (xNum >= 1 && yNum >= 1 && (utility.isSquareOpened(i) === false)) {
+                data.push(`${xNum}-${yNum}`)
+              }
+              break
+          }
+
+        case 4:
+          xNum = Number(iReg[0] + iReg[1])
+          yNum = Number(iReg[2] + iReg[3])
+          //console.log(xNum, yNum)
+          switch (yNum) {
+            case (model.columns):
+              //console.log(584)
+              if ((xNum >= 1 && xNum <= model.rows) && (yNum >= 1 && yNum <= model.columns) && (utility.isSquareOpened(i) === false)) {
+                data.push(`${xNum}-${yNum}`)
+              }
+              break
+
+            default:
+              //console.log(591)
+              if (xNum >= 1 && yNum >= 1 && (utility.isSquareOpened(i) === false)) {
+                data.push(`${xNum}-${yNum}`)
+              }
+              break
+          }
+      }
+    })
     //console.log(data)
     return data
   },
@@ -528,5 +632,5 @@ const utility = {
   }
 }
 
-controller.createGame(9, 10)
+controller.createGame(9, 9, 10)
 controller.getSettings()

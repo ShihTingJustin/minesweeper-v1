@@ -1,14 +1,38 @@
-body {
-  position: absolute;
+#container {
+  border: 5px solid black;
+  padding: 20px;
+  /* max-width: 450px; */
+  min-width: 300px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 1.2rem;
+  /* position: absolute;
   left: 40%;
-  top: 20%;
+  top: 20%; */
+}
+
+#tool {
+  align-self: flex-end;
+  cursor: pointer;
+}
+
+.line {
+  border: 1px solid #DADADA;
+}
+
+.borderless td, .borderless th {
+  /* border: none; */
+  font-size: 0.6rem;
+  
 }
 
 #header, #section {
   display: flex;
   justify-content: center;
   align-content: center; 
-  margin-top: 1.1em;
+  /* margin-top: 1.1em; */
 }
 
 #header {
@@ -35,12 +59,13 @@ body {
   box-sizing: border-box;
   min-height: 30px;
   line-height: 30px;
+  font-size: small;
 }
 
 #game {
   display: grid;
-  grid-template-columns: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
-  grid-template-rows: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
+  /* grid-template-columns: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
+  grid-template-rows: 30px 30px 30px 30px 30px 30px 30px 30px 30px; */
 }
 
 .square {

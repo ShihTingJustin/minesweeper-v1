@@ -6,6 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Minesweeper</title>
+  <style id='style'>
+    #game {
+      grid-template-columns: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
+      grid-template-rows: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
+    }
+  </style>
   <!-- font-awesome -->
   <script src="https://kit.fontawesome.com/a470dfdd95.js" crossorigin="anonymous"></script>
   <!-- bootstrap -->
@@ -15,21 +21,141 @@
 </head>
 
 <body>
-  <div id="header">
-    <div class="title">
-      <h2>Minesweeper</h2>
+  <div id="container">
+    <i id="tool" class="fas fa-cog" data-toggle="modal" data-target="#toolModal"></i>
+    <div id="header">
+      <div class="title">
+        <h2>Minesweeper</h2>
+      </div>
+      <div id='info'>
+        <p id='flag-counter'>flags: </p>
+        <p id='timer'>000</p>
+      </div>
     </div>
-    <div id='info'>
-      <p id='flag-counter'>flags: </p>
-      <p id='timer'>000</p>
+    <div id="section">
+      <div id="game"></div>
+    </div>
+    <div id='footer'>
+      <button id='New-btn' type="button" class="btn btn-primary">New Game</button>
+      <button id='GM-btn' type="button" class="btn btn-warning">God Mode</button>
     </div>
   </div>
-  <div id="section">
-    <div id="game"></div>
+  <div class="ranking">
+    <div class="legend"></div>
+    <div class="master"></div>
+    <div class="rookie"></div>
   </div>
-  <div id='footer'>
-    <button id='New-btn' type="button" class="btn btn-primary">New Game</button>
-    <button id='GM-btn' type="button" class="btn btn-warning">God Mode</button>
+
+  <!-- Modal -->
+  <div class="modal fade" id="toolModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Tools</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="modal-game">
+            <div class="game-title">Game</div>
+            <p class='line'></p>
+            <table class="table borderless table-hover text-center">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th></th>
+                  <th>rows</th>
+                  <th>columns</th>
+                  <th>mines</th>
+                </tr>
+                <tr>
+                  <th>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="inlineRadioOptions" id="beginner"
+                        value="option1">
+                      <label class="form-check-label" for="inlineRadio1"></label>
+                    </div>
+                  </th>
+                  <th><label for="beginner">Beginner</label></th>
+                  <th><label for="beginner">9</label></th>
+                  <th><label for="beginner">9</label></th>
+                  <th><label for="beginner">10</label></th>
+                </tr>
+                <tr>
+                  <th>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="inlineRadioOptions" id="master"
+                        value="option1">
+                    </div>
+                  </th>
+                  <th><label for="master">Master</label></th>
+                  <th><label for="master">16</label></th>
+                  <th><label for="master">16</label></th>
+                  <th><label for="master">40</label></th>
+                </tr>
+                <tr>
+                  <th>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="inlineRadioOptions" id="legend"
+                        value="option1">
+                    </div>
+                  </th>
+                  <th>
+                    <label for="legend">Legend</label>
+                  </th>
+                  <th>
+                    <label for="legend">16</label>
+                  </th>
+                  <th>
+                    <label for="legend">30</label>
+                  </th>
+                  <th>
+                    <label for="legend">99</label>
+                  </th>
+                </tr>
+                <tr>
+                  <th>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="inlineRadioOptions" id="custom"
+                        value="option1">
+                    </div>
+                  </th>
+                  <th>
+                    <label for="custom">Custom</label>
+                  </th>
+                  <th>
+                    <label for="custom"><input id='custom-row' type="text" placeholder="rows"></label>
+                  </th>
+                  <th>
+                    <label for="custom"><input id='custom-column' type="text" placeholder="columns"></label>
+                  </th>
+                  <th>
+                    <label for="custom"><input id='custom-mine' type="text" placeholder="mines"></label>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="data-panel">
+                <!-- display data here -->
+              </tbody>
+            </table>
+            <div class="display-title">Display</div>
+            <p class='line'></p>
+            <!-- Default unchecked -->
+            <!-- <div class="Level">
+              <input type="checkbox" class="custom-control-input" id="defaultUnchecked">
+              <label class="custom-control-label" for="defaultUnchecked">Default unchecked</label>
+            </div> -->
+          </div>
+          <div id="display"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id='modal-save-btn' class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 
