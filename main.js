@@ -60,7 +60,7 @@ const view = {
     }
   },
   showFlagCounter() {
-    document.getElementById('flag-counter').innerHTML = `flags: ${model.mines.length - model.flags.length}`
+    document.getElementById('flag-counter').innerHTML = `<i id='info-flag' class="fas fa-flag" style='margin-right: 6px;'></i>${model.mines.length - model.flags.length}`
   },
 
   /**
@@ -69,7 +69,8 @@ const view = {
    */
   renderTimer() {
     const timer = document.getElementById('timer');
-    timer.innerHTML = String(model.timerStartTime).padStart(3, '0');
+    const padStart = String(model.timerStartTime).padStart(3, '0')
+    timer.innerHTML = `<i class="fas fa-clock" style='margin-right: 0px;'></i>${padStart}`
   },
   /**
    * showBoard()
@@ -122,12 +123,12 @@ const controller = {
     console.log(model.mines, controller.currentState)
   },
   leftClick(e) {
-    model.leftClickTimes++
     switch (controller.currentState) {
       case GAME_STATE.Playing:
         if (e.target.classList.contains('open') || e.target.classList.contains('flag')) {
           return
         } else if (e.target.classList.contains('square')) {
+          model.leftClickTimes++
           //點擊成功一秒後開始計時
           if (model.leftClickTimes === 1) {
             setTimeout(controller.setTimer(), 1000)
@@ -284,10 +285,10 @@ const controller = {
       } else {
         switch (model.leftClickTimes) {
           //第一次不會踩到地雷
-          // case 1:
-          //   console.log('you click bomb but give you another chance')
-          //   controller.firstClickMine(field)
-          //   break
+          case 1:
+            console.log('you click bomb but give you another chance')
+            controller.firstClickMine(field)
+            break
 
           default:
             //踩到地雷的狀況
@@ -305,11 +306,18 @@ const controller = {
   },
   firstClickMine(field) {
     //畫面更新
-    field.classList.remove('fa-bomb', 'mine', 'open')
+    const squares = document.querySelectorAll('.square')
+    squares.forEach(square => {
+      if (square.classList.contains('mine')) {
+        square.classList.remove('fa-bomb', 'mine', 'open')
+      }
+    })
     //資料更新
     utility.cleanLastGameData(1)
-    controller.setMinesAndFields(10)
+    controller.setMinesAndFields(model.gameDifficulty.mines)
+    console.log(model.mines)
     controller.dig(field)
+    model.leftClickTimes = 2
   },
   flag(field) {
     console.log(field)
@@ -727,7 +735,6 @@ const utility = {
         //playGround.innerHTML = ``
         //資料清空
         model.fieldMineAmount = 0
-        model.squarePositions = []
         model.mines = []
         model.fields = []
         model.flags = []

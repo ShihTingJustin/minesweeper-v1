@@ -2,6 +2,8 @@
 <html lang="en">
 
 <head>
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Mr+Dafoe&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -22,29 +24,47 @@
 
 <body>
   <div id="container">
-    <i id="tool" class="fas fa-cog" data-toggle="modal" data-target="#toolModal"></i>
+    <i id="tool" class="fas fa-cog fa-lg" data-toggle="modal" data-target="#toolModal"></i>
     <div id="header">
       <div class="title">
-        <h2>Minesweeper</h2>
+        <h2>Minesweeper 💣</h2>
       </div>
       <div id='info'>
-        <p id='flag-counter'>flags: </p>
-        <p id='timer'>000</p>
+        <p id='flag-counter'></p>
+        <p id='timer'><i class="fas fa-clock" style='margin-right: 0px;'></i>000</p>
       </div>
     </div>
     <div id="section">
       <div id="game"></div>
     </div>
     <div id='footer'>
-      <button id='New-btn' type="button" class="btn btn-primary">New Game</button>
-      <button id='GM-btn' type="button" class="btn btn-warning">God Mode</button>
+      <button id='New-btn' type="button" class="btn btn-dark">New Game</button>
+      <button id='GM-btn' type="button" class="btn btn-dark">God Mode</button>
     </div>
   </div>
   <div class="ranking">
-    <div class="legend"></div>
-    <div class="master"></div>
-    <div class="rookie"></div>
+    <div class="rank-title">Hall of Fame</div>
+    <p class='line'></p>
+    <table class="table table-borderless table-hover text-center">
+      <thead class="thead-light">
+        <tr>
+          <th class='rank'>#</th>
+          <th><i class=""></i>Legend</th>
+          <th><i class=""></i>Master</th>
+          <th><i class=""></i>Beginner</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th class='rank'>1</th>
+          <th>player</label></th>
+          <th>player</label></th>
+          <th>player</label></th>
+        </tr>
+    </table>
   </div>
+
+
 
   <!-- Modal -->
   <div class="modal fade" id="toolModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -52,22 +72,22 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Tools</h5>
+          <h5 class="modal-title" id="exampleModalLabel">Game Settings</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
           <div id="modal-game">
-            <div class="game-title">Game</div>
-            <p class='line'></p>
+            <!-- <div class="game-title">Game</div>
+            <p class='line'></p> -->
             <table class="table table-borderless table-hover text-center">
               <thead class="thead-light">
                 <tr>
                   <th></th>
                   <th><i class="fas fa-arrows-alt-v"></i>Height</th>
                   <th><i class="fas fa-arrows-alt-h"></i>Width</th>
-                  <th><i class="fas fa-bomb"></i>Mines</th>
+                  <th><i id='modal-bomb' class="fas fa-bomb"></i>Mines</th>
                 </tr>
               </thead>
               <tbody>
@@ -116,16 +136,16 @@
                     </div>
                   </th>
                   <th>
-                    <label class="form-check-label custom-input" for="custom"><input class=" no-border" id='custom-row' type="text"
-                        placeholder="Height"></label>
+                    <label class="form-check-label custom-input" for="custom"><input class=" no-border" id='custom-row'
+                        type="text" placeholder="Height"></label>
                   </th>
                   <th>
-                    <label class="form-check-label custom-input" for="custom"><input class=" no-border" id='custom-column'
-                        type="text" placeholder="Width"></label>
+                    <label class="form-check-label custom-input" for="custom"><input class=" no-border"
+                        id='custom-column' type="text" placeholder="Width"></label>
                   </th>
                   <th>
-                    <label class="form-check-label custom-input" for="custom"><input class=" no-border" id='custom-mine' type="text"
-                        placeholder="Mines"></label>
+                    <label class="form-check-label custom-input" for="custom"><input class=" no-border" id='custom-mine'
+                        type="text" placeholder="Mines"></label>
                   </th>
                 </tr>
               </tbody>
@@ -133,37 +153,35 @@
                 <!-- display data here -->
               </tbody>
             </table>
-            <div class="display-title">Display</div>
+            <!-- <div class="display-title">Display</div>
             <p class='line'></p>
-            <!-- Default unchecked -->
-            <!-- <div class="Level">
-              <input type="checkbox" class="custom-control-input" id="defaultUnchecked">
-              <label class="custom-control-label" for="defaultUnchecked">Default unchecked</label>
-            </div> -->
           </div>
           <div id="display"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" id='modal-save-btn' class="btn btn-primary" data-dismiss="do-nothing">Save</button>
+          <div class="display-wrapper">
+            <div id="night-mode">Night Mode <i class="fas fa-toggle-off"></i></div>
+          </div> -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" id='modal-save-btn' class="btn btn-primary" data-dismiss="do-nothing">Save</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
 
 
-  <script src="main.js"></script>
-  <!-- bootstrap -->
-  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-    crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-    crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-    crossorigin="anonymous"></script>
+    <script src="main.js"></script>
+    <!-- bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+      crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+      integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+      crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+      integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+      crossorigin="anonymous"></script>
 </body>
 
 </html>
