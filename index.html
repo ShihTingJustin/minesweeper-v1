@@ -8,15 +8,15 @@
   <title>Minesweeper</title>
   <style id='style'>
     #game {
-      grid-template-columns: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
-      grid-template-rows: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
+      grid-template-columns: 0;
+      grid-template-rows: 0;
     }
   </style>
   <!-- font-awesome -->
   <script src="https://kit.fontawesome.com/a470dfdd95.js" crossorigin="anonymous"></script>
   <!-- bootstrap -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -61,81 +61,74 @@
           <div id="modal-game">
             <div class="game-title">Game</div>
             <p class='line'></p>
-            <table class="table borderless table-hover text-center">
-              <thead>
+            <table class="table table-borderless table-hover text-center">
+              <thead class="thead-light">
                 <tr>
                   <th></th>
-                  <th></th>
-                  <th>rows</th>
-                  <th>columns</th>
-                  <th>mines</th>
+                  <th><i class="fas fa-arrows-alt-v"></i>Height</th>
+                  <th><i class="fas fa-arrows-alt-h"></i>Width</th>
+                  <th><i class="fas fa-bomb"></i>Mines</th>
                 </tr>
+              </thead>
+              <tbody>
                 <tr>
-                  <th>
+                  <th class="difficulty-wrapper">
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="inlineRadioOptions" id="beginner"
-                        value="option1">
-                      <label class="form-check-label" for="inlineRadio1"></label>
+                        value="beginnerGame">
+                      <label class="form-check-label" for="beginner">Beginner</label>
                     </div>
                   </th>
-                  <th><label for="beginner">Beginner</label></th>
-                  <th><label for="beginner">9</label></th>
-                  <th><label for="beginner">9</label></th>
-                  <th><label for="beginner">10</label></th>
+                  <th><label class="form-check-label" for="beginner">9</label></th>
+                  <th><label class="form-check-label" for="beginner">9</label></th>
+                  <th><label class="form-check-label" for="beginner">10</label></th>
                 </tr>
                 <tr>
-                  <th>
+                  <th class="difficulty-wrapper">
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="inlineRadioOptions" id="master"
-                        value="option1">
+                        value="masterGame">
+                      <label class="form-check-label" for="master">Master</label>
                     </div>
                   </th>
-                  <th><label for="master">Master</label></th>
-                  <th><label for="master">16</label></th>
-                  <th><label for="master">16</label></th>
-                  <th><label for="master">40</label></th>
+                  <th><label class="form-check-label" for="master">16</label></th>
+                  <th><label class="form-check-label" for="master">16</label></th>
+                  <th><label class="form-check-label" for="master">40</label></th>
                 </tr>
                 <tr>
-                  <th>
+                  <th class="difficulty-wrapper">
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="inlineRadioOptions" id="legend"
-                        value="option1">
+                        value="legendGame">
+                      <label class="form-check-label" for="legend">Legend</label>
                     </div>
                   </th>
-                  <th>
-                    <label for="legend">Legend</label>
-                  </th>
-                  <th>
-                    <label for="legend">16</label>
-                  </th>
-                  <th>
-                    <label for="legend">30</label>
-                  </th>
-                  <th>
-                    <label for="legend">99</label>
-                  </th>
+                  <th><label class="form-check-label" for="legend">16</label></th>
+                  <th><label class="form-check-label" for="legend">30</label></th>
+                  <th><label class="form-check-label" for="legend">99</label></th>
                 </tr>
                 <tr>
-                  <th>
+                  <th class="difficulty-wrapper">
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="inlineRadioOptions" id="custom"
                         value="option1">
+                      <label class="form-check-label" for="custom">Custom</label>
                     </div>
                   </th>
                   <th>
-                    <label for="custom">Custom</label>
+                    <label class="form-check-label custom-input" for="custom"><input class=" no-border" id='custom-row' type="text"
+                        placeholder="Height"></label>
                   </th>
                   <th>
-                    <label for="custom"><input id='custom-row' type="text" placeholder="rows"></label>
+                    <label class="form-check-label custom-input" for="custom"><input class=" no-border" id='custom-column'
+                        type="text" placeholder="Width"></label>
                   </th>
                   <th>
-                    <label for="custom"><input id='custom-column' type="text" placeholder="columns"></label>
-                  </th>
-                  <th>
-                    <label for="custom"><input id='custom-mine' type="text" placeholder="mines"></label>
+                    <label class="form-check-label custom-input" for="custom"><input class=" no-border" id='custom-mine' type="text"
+                        placeholder="Mines"></label>
                   </th>
                 </tr>
-              </thead>
+              </tbody>
               <tbody id="data-panel">
                 <!-- display data here -->
               </tbody>
@@ -152,7 +145,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" id='modal-save-btn' class="btn btn-primary">Save</button>
+          <button type="button" id='modal-save-btn' class="btn btn-primary" data-dismiss="do-nothing">Save</button>
         </div>
       </div>
     </div>
@@ -162,14 +155,14 @@
 
   <script src="main.js"></script>
   <!-- bootstrap -->
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
     crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
     crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
     crossorigin="anonymous"></script>
 </body>
 

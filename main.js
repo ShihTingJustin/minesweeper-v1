@@ -11,10 +11,6 @@ const view = {
    * 輸入的 rows 是指版圖的行列數。
    */
   displayFields(rows, columns) {
-    //更新列跟欄的資料
-    model.rows = rows
-    model.columns = columns
-
     const playGround = document.querySelector('#game')
     for (let i = 1; i <= rows; i++) {
       for (let j = 1; j <= columns; j++) {
@@ -42,8 +38,6 @@ const view = {
       grid-template-rows: ${row};
     }
     `
-    console.log(style)
-
   },
   /**
    * showFieldContent()
@@ -121,6 +115,7 @@ const controller = {
    *   4. 綁定事件監聽器到格子上
    */
   createGame(numberOfRows, numberOfColumns, numberOfMines) {
+    model.gameDifficulty = { rows: numberOfRows, columns: numberOfColumns, mines: numberOfMines }
     controller.currentState = GAME_STATE.Playing
     view.displayFields(numberOfRows, numberOfColumns)
     controller.setMinesAndFields(numberOfMines)
@@ -190,7 +185,7 @@ const controller = {
   setMinesAndFields(numberOfMines) {
     //從 squarePositions 隨機選出號碼(避免重複)當作地雷並存入model
     for (let i = 0; i < numberOfMines;) {
-      let randomIndex = Math.floor(Math.random() * model.rows * model.columns)
+      let randomIndex = Math.floor(Math.random() * model.squarePositions.length)
       if (!model.mines.includes(model.squarePositions[randomIndex])) {
         model.mines.push(model.squarePositions[randomIndex])
         //遍歷所有格子 號碼有在model.mines的就加上mine
@@ -355,22 +350,149 @@ const controller = {
     view.renderTimer()
   },
   modalGame() {
+    const modal = document.querySelector('.modal-content')
+    const beginner = document.getElementById('beginner')
+    const master = document.getElementById('master')
+    const legend = document.getElementById('legend')
+    const custom = document.getElementById('custom')
+    const saveBtn = document.querySelector('#modal-save-btn')
 
+    modal.addEventListener('click', e => {
+      if (beginner.checked) {
+        if (e.target.id === 'modal-save-btn') {
+          controller.startNewGame(9, 9, 10)
+          saveBtn.setAttribute('data-dismiss', 'modal')
+        }
+      } else if (master.checked) {
+        if (e.target.id === 'modal-save-btn') {
+          controller.startNewGame(16, 16, 40)
+          saveBtn.setAttribute('data-dismiss', 'modal')
+        }
+      } else if (legend.checked) {
+        if (e.target.id === 'modal-save-btn') {
+          controller.startNewGame(16, 30, 99)
+          saveBtn.setAttribute('data-dismiss', 'modal')
+        }
+      } else if (custom.checked) {
+        if (e.target.id === 'modal-save-btn') {
+          const rowInput = document.querySelector('#custom-row')
+          const columnInput = document.querySelector('#custom-column')
+          const mineInput = document.querySelector('#custom-mine')
+          const gameField = rowInput.value * columnInput.value
+          const maxMineAmount = Math.floor(gameField / 4)
+          let rowInputStatus = false
+          let columnInputStatus = false
+          let mineInputStatus = false
+
+          //檢查Height
+          switch (isNaN(rowInput.value)) {
+            case false:
+              switch (rowInput.value > 0) {
+                case true:
+                  switch (rowInput.value % 1) {
+                    case 0:
+                      rowInputStatus = true
+                      break
+
+                    default:
+                      alert(`Height is Not a Integer !`)
+                  } break
+
+                default:
+                  alert(`Height is Not a Positive Number !`)
+              } break
+
+            default:
+              alert(`Height is Not a Number !`)
+          }
+
+          //檢查Width
+          switch (isNaN(columnInput.value)) {
+            case false:
+              switch (columnInput.value > 0) {
+                case true:
+                  switch (columnInput.value % 1) {
+                    case 0:
+                      columnInputStatus = true
+                      break
+
+                    default:
+                      alert(`Width is Not a Integer !`)
+                  } break
+
+                default:
+                  alert(`Width is Not a Positive Number !`)
+              } break
+
+            default:
+              alert(`Width is Not a Number !`)
+          }
+
+          //檢查Mines
+          switch (isNaN(mineInput.value)) {
+            case false:
+              switch (mineInput.value > 0) {
+                case true:
+                  switch (mineInput.value % 1) {
+                    case 0:
+                      mineInputStatus = true
+                      break
+
+                    default:
+                      alert(`Mines is Not a Integer !`)
+                  } break
+
+                default:
+                  alert(`Mines is Not a Positive Number !`)
+              } break
+
+            default:
+              alert(`Mines is Not a Number !`)
+          }
+
+          if (gameField < 2) {
+            alert(`The Game Field is too small, Please Adjust the Value of Height or Width.`)
+            rowInputStatus = false
+            columnInputStatus = false
+          } else if (maxMineAmount < mineInput.value) {
+            alert(`The Mines are too many, the Maximum is ${maxMineAmount}.`)
+            mineInputStatus = false
+          } else if (rowInputStatus === true && columnInputStatus === true && mineInputStatus === true) {
+            controller.startNewGame(rowInput.value, columnInput.value, mineInput.value)
+            saveBtn.setAttribute('data-dismiss', 'modal')
+          }
+
+        }
+      }
+    })
+
+    //點擊輸入框就會選取custom
+    const customInput = document.querySelectorAll('.custom-input')
+    customInput.forEach(i => {
+      i.addEventListener('click', () => {
+        custom.checked = true
+      })
+    })
   },
+  startNewGame(rows, columns, mines) {
+    utility.cleanLastGameData()
+    controller.removeListeners() //監聽器要拿掉 因為createGame會綁上
+    alert('New Game Start!')
+    controller.createGame(rows, columns, mines)
+    controller.stopTimer()
+    controller.resetTimer()
+  },
+
   getSettings() {
     controller.addListeners()
-
-    const modalSaveBtn = document.querySelector('#modal-save-btn')
-    modalSaveBtn.addEventListener('click', e => {
-
-    })
+    controller.modalGame()
 
     const newGameBtn = document.querySelector('#New-btn')
     newGameBtn.addEventListener('click', () => {
       utility.cleanLastGameData()
       controller.removeListeners() //監聽器要拿掉 因為createGame會綁上
       alert('New Game Start!')
-      controller.createGame(9, 10)
+      controller.createGame(model.gameDifficulty.rows, model.gameDifficulty.columns, model.gameDifficulty.mines)
       controller.stopTimer()
       controller.resetTimer()
     })
@@ -395,7 +517,7 @@ const controller = {
   },
   isWin() {
     let result
-    if (model.fields.length === (model.rows * model.columns - model.mines.length)) {
+    if (model.fields.length === (model.gameDifficulty.rows * model.gameDifficulty.columns - model.gameDifficulty.mines)) {
       result = true
     } else {
       result = false
@@ -406,13 +528,11 @@ const controller = {
 
 
 const model = {
+  gameDifficulty: { rows: 0, columns: 0, mines: 0 },
+
   leftClickTimes: 0,
 
   flags: [],
-
-  rows: 0,
-
-  columns: 0,
 
   fieldMineAmount: 0,  //暫存九宮格內的地雷數量
 
@@ -461,9 +581,6 @@ const model = {
 
 
 const utility = {
-  custom() {
-
-  },
   /**
    * getRandomNumberArray()
    * 取得一個隨機排列的、範圍從 0 到 count參數 的數字陣列。
@@ -532,7 +649,7 @@ const utility = {
 
             default:
               //console.log(548)
-              if ((xNum >= 1 && xNum <= model.rows) && (yNum >= 1 && yNum <= model.columns) && (utility.isSquareOpened(i) === false)) {
+              if ((xNum >= 1 && xNum <= model.gameDifficulty.rows) && (yNum >= 1 && yNum <= model.gameDifficulty.columns) && (utility.isSquareOpened(i) === false)) {
                 data.push(`${xNum}-${yNum}`)
               }
               break
@@ -550,7 +667,7 @@ const utility = {
           switch (yNum) {
             case (model.columns):
               //console.log(565)
-              if ((xNum >= 1 && xNum <= model.rows) && (yNum >= 1 && yNum <= model.columns) && (utility.isSquareOpened(i) === false)) {
+              if ((xNum >= 1 && xNum <= model.gameDifficulty.rows) && (yNum >= 1 && yNum <= model.gameDifficulty.columns) && (utility.isSquareOpened(i) === false)) {
                 data.push(`${xNum}-${yNum}`)
               }
               break
@@ -605,12 +722,12 @@ const utility = {
   cleanLastGameData(option) {
     const playGround = document.querySelector('#game')
     switch (option) {
-      case 1:
+      case 1:    //for #310
         //畫面清空
         //playGround.innerHTML = ``
         //資料清空
         model.fieldMineAmount = 0
-        model.squarePosition = []
+        model.squarePositions = []
         model.mines = []
         model.fields = []
         model.flags = []
@@ -622,7 +739,7 @@ const utility = {
         playGround.innerHTML = ``
         //資料清空
         model.fieldMineAmount = 0
-        model.squarePosition = []
+        model.squarePositions = []
         model.mines = []
         model.fields = []
         model.flags = []

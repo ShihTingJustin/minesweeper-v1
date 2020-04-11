@@ -22,10 +22,35 @@
   border: 1px solid #DADADA;
 }
 
-.borderless td, .borderless th {
-  /* border: none; */
-  font-size: 0.6rem;
-  
+table {
+  font-size: 0.2rem;
+  table-layout: fixed;
+}
+
+th > i {
+  margin-right: 0.3rem;
+}
+
+.difficulty-wrapper {
+  text-align: left;
+}
+
+label > input {
+  width: 70%;
+  text-align: center;
+}
+
+.form-check input[type="radio"] {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.no-border {
+  border: none;
+  border-bottom: 2px solid grey;
+  /* border-top: none;
+  border-left: none;
+  border-right: none; */
 }
 
 #header, #section {
@@ -64,8 +89,6 @@
 
 #game {
   display: grid;
-  /* grid-template-columns: 30px 30px 30px 30px 30px 30px 30px 30px 30px;
-  grid-template-rows: 30px 30px 30px 30px 30px 30px 30px 30px 30px; */
 }
 
 .square {
