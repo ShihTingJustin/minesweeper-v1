@@ -8,12 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Minesweeper</title>
-  <style id='style'>
-    #game {
-      grid-template-columns: 0;
-      grid-template-rows: 0;
-    }
-  </style>
+  <style id='style'></style>
   <!-- font-awesome -->
   <script src="https://kit.fontawesome.com/a470dfdd95.js" crossorigin="anonymous"></script>
   <!-- bootstrap -->
@@ -23,11 +18,11 @@
 </head>
 
 <body>
-  <div id="container">
+  <div id="container" class="container-border">
     <i id="tool" class="fas fa-cog fa-lg" data-toggle="modal" data-target="#toolModal"></i>
     <div id="header">
       <div class="title">
-        <h2>Minesweeper 💣</h2>
+        Minesweeper
       </div>
       <div id='info'>
         <p id='flag-counter'></p>
@@ -42,7 +37,7 @@
       <button id='GM-btn' type="button" class="btn btn-dark">God Mode</button>
     </div>
   </div>
-  <div class="ranking">
+  <!-- <div class="ranking">
     <div class="rank-title">Hall of Fame</div>
     <p class='line'></p>
     <table class="table table-borderless table-hover text-center">
@@ -62,7 +57,7 @@
           <th>player</label></th>
         </tr>
     </table>
-  </div>
+  </div> -->
 
 
 

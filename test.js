@@ -1,5 +1,4 @@
 function startTimer(seconds) {
-  let i
   const now = Date.now() //取得現在的時間戳記
   const endTime = Date.now() + seconds * 1000 //結束的時間戳記
   console.log({
@@ -17,8 +16,6 @@ function startTimer(seconds) {
       return
     }
   }, 1000)
-  console.log(i)
-  i++
 }
 
-startTimer(5)
+startTimer(10)

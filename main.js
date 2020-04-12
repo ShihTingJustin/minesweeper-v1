@@ -72,6 +72,44 @@ const view = {
     const padStart = String(model.timerStartTime).padStart(3, '0')
     timer.innerHTML = `<i class="fas fa-clock" style='margin-right: 0px;'></i>${padStart}`
   },
+  renderWin(seconds) {
+    const container = document.querySelector('#container')
+    const title = document.querySelector('.title')
+    container.classList.add('winner-border')
+    title.classList.add('win-title')
+    title.innerText = 'Congratulations'
+
+    const endTime = Date.now() + seconds * 1000 //結束的時間戳記
+
+    model.winTmId = setInterval(() => {
+      const remainingSeconds = Math.floor(endTime - Date.now())
+      container.classList.toggle('winner-border')
+      title.classList.toggle('win-title')
+
+      if (remainingSeconds < 0) {
+        clearInterval(model.winTmId)
+        return
+      }
+    }, 250)
+  },
+  stopRenderWin() {
+    window.clearInterval(model.winTmId)
+    const container = document.querySelector('#container')
+    const title = document.querySelector('.title')
+    container.classList.remove('winner-border')
+    title.classList.remove('win-title')
+    title.innerText = 'Minesweeper'
+  },
+  renderLose() {
+    const title = document.querySelector('.title')
+    title.classList.add('lose-title')
+    title.innerText = 'Give it Another Try'
+  },
+  stopRenderLose() {
+    const title = document.querySelector('.title')
+    title.classList.remove('lose-title')
+    title.innerText = 'Minesweeper'
+  },
   /**
    * showBoard()
    * 遊戲結束時，或是 debug 時將遊戲的全部格子內容顯示出來。
@@ -87,7 +125,22 @@ const view = {
         })
         break;
 
-      default:
+      case GAME_STATE.Win:
+        squares.forEach(square => {
+          if (square.classList.contains('mine')) {
+            square.classList.add('fas', 'fa-bomb')
+            if (square.classList.contains('flag')) {
+              //遊戲結束時插在地雷上的旗子會留下且變成橘色
+              square.classList.add('fa-flag')
+              square.classList.add('flag-win')
+              square.classList.remove('fa-bomb')
+              console.log(square)
+            }
+          }
+        })
+        break
+
+      case GAME_STATE.Lose:
         squares.forEach(square => {
           if (square.classList.contains('mine')) {
             square.classList.add('fas', 'fa-bomb')
@@ -99,6 +152,7 @@ const view = {
             }
           }
         })
+        break
     }
   }
 }
@@ -142,8 +196,10 @@ const controller = {
     }
     if (controller.isWin() === true) {
       controller.currentState = GAME_STATE.Win
+
       alert('Great Job! You Win!!!')
       view.showBoard()
+      view.renderWin(999)
       controller.removeListeners()
       controller.stopTimer()
     }
@@ -298,6 +354,7 @@ const controller = {
             controller.currentState = GAME_STATE.Lose
             alert("Oh No, It's a mine! Sorry for that...")
             view.showBoard()
+            view.renderLose()
             controller.removeListeners()
             controller.stopTimer()
         }
@@ -368,16 +425,22 @@ const controller = {
     modal.addEventListener('click', e => {
       if (beginner.checked) {
         if (e.target.id === 'modal-save-btn') {
+          view.stopRenderWin()
+          view.stopRenderLose()
           controller.startNewGame(9, 9, 10)
           saveBtn.setAttribute('data-dismiss', 'modal')
         }
       } else if (master.checked) {
         if (e.target.id === 'modal-save-btn') {
+          view.stopRenderWin()
+          view.stopRenderLose()
           controller.startNewGame(16, 16, 40)
           saveBtn.setAttribute('data-dismiss', 'modal')
         }
       } else if (legend.checked) {
         if (e.target.id === 'modal-save-btn') {
+          view.stopRenderWin()
+          view.stopRenderLose()
           controller.startNewGame(16, 30, 99)
           saveBtn.setAttribute('data-dismiss', 'modal')
         }
@@ -466,6 +529,8 @@ const controller = {
             alert(`The Mines are too many, the Maximum is ${maxMineAmount}.`)
             mineInputStatus = false
           } else if (rowInputStatus === true && columnInputStatus === true && mineInputStatus === true) {
+            view.stopRenderWin()
+            view.stopRenderLose()
             controller.startNewGame(rowInput.value, columnInput.value, mineInput.value)
             saveBtn.setAttribute('data-dismiss', 'modal')
           }
@@ -497,6 +562,8 @@ const controller = {
 
     const newGameBtn = document.querySelector('#New-btn')
     newGameBtn.addEventListener('click', () => {
+      view.stopRenderWin()
+      view.stopRenderLose()
       utility.cleanLastGameData()
       controller.removeListeners() //監聽器要拿掉 因為createGame會綁上
       alert('New Game Start!')
@@ -536,6 +603,8 @@ const controller = {
 
 
 const model = {
+  winTmId: 0,
+
   gameDifficulty: { rows: 0, columns: 0, mines: 0 },
 
   leftClickTimes: 0,
@@ -564,7 +633,7 @@ const model = {
 
   timerStartTime: 0,
 
-  timer,  //給 timer 用的變數
+  timer: 0,  //給 timer 用的變數
 
   isField(fieldIdx) {      // 用來判斷格子有沒有存入 model.fields
     let result

@@ -19,21 +19,24 @@ body {
 #container {
   position: absolute;
   min-width: 350px;
-  border: 5px solid black;
   padding: 20px;
   margin: auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  margin-top: 1.2rem;
+  justify-content: center;  
   background: hsla(0,0%,100%,.6); 
   padding: 10px;
   border-radius: 20px;
   font-family: 'Mr Dafoe', cursive;
 }
 
+.container-border {
+  border: 5px solid black;
+}
+
 .title {
   margin-bottom: 1.3rem;
+  font-size: x-large;
 }
 
 /* .win, .fa-flag, .title, .fa-clock, #tool {
@@ -155,11 +158,14 @@ label > input {
 }
 
 html, body {
-  background-color: rgb(245, 240, 228);
+  background-color: rgb(203, 212, 212);
+  /* rgb(238, 224, 192) */
+  /* rgb(245, 240, 228); */
 }
 
 .square{
-  background-color: rgb(90, 90, 90);
+  background-color: rgb(50, 50, 50)
+  /* rgb(90, 90, 90); */
   /* -webkit-box-shadow: 3px 3px 3px grey;
 	-moz-box-shadow: 3px 3px 3px grey;
 	box-shadow: 3px 3px 3px grey; */
@@ -171,6 +177,26 @@ html, body {
 
 .fa-flag {
 color: rgb(250, 185, 44);
+/* rgb(0, 128, 248) */
+/*  */
+}
+
+.winner-border {
+  border: 5px solid rgb(245, 213, 10);
+}
+
+.win-title {
+  font-size: x-large;
+  color: rgb(245, 213, 10);
+  transform-origin: (0, 0);
+  transform:scale(1.8, 1.8);
+}
+
+.lose-title {
+  font-size: x-large;
+  color: rgb(245, 18, 10);
+  transform-origin: (0, 0);
+  transform:scale(1.8, 1.8);
 }
 
 #info-flag {
