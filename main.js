@@ -79,7 +79,7 @@ const view = {
     title.classList.add('win-title')
     title.innerText = 'Congratulations'
 
-    setInterval(() => {
+    model.winTmId = setInterval(() => {
       container.classList.toggle('winner-border')
       title.classList.toggle('win-title')
     }, 250)
@@ -374,21 +374,23 @@ const controller = {
   },
   flag(field) {
     console.log(field)
-    if (field.classList.contains('open')) {
-      return
-    } else if (field.classList.contains('flag')) {
-      field.classList.remove('flag', 'fa-flag')
-      if (model.flags.includes(String(field.dataset.index))) {
-        const idx = model.flags.indexOf(String(field.dataset.index))
-        model.flags.splice(idx, 1)
-        console.log('flag removed', model.flags)
+    if (model.flags.length !== model.mines.length) {
+      if (field.classList.contains('open')) {
+        return
+      } else if (field.classList.contains('flag')) {
+        field.classList.remove('flag', 'fa-flag')
+        if (model.flags.includes(String(field.dataset.index))) {
+          const idx = model.flags.indexOf(String(field.dataset.index))
+          model.flags.splice(idx, 1)
+          console.log('flag removed', model.flags)
+        }
+      } else if (!field.classList.contains('flag')) {
+        field.classList.add('flag', 'fas', 'fa-flag')
+        model.flags.push(field.dataset.index)
+        console.log('flag added', model.flags)
       }
-    } else if (!field.classList.contains('flag')) {
-      field.classList.add('flag', 'fas', 'fa-flag')
-      model.flags.push(field.dataset.index)
-      console.log('flag added', model.flags)
+      view.showFlagCounter()
     }
-    view.showFlagCounter()
   },
   setTimer() {
     const endTime = 999
@@ -544,6 +546,8 @@ const controller = {
     })
   },
   startNewGame(rows, columns, mines) {
+    view.renderWin()
+    view.renderLose()
     utility.cleanLastGameData()
     controller.removeListeners() //監聽器要拿掉 因為createGame會綁上
     alert('New Game Start!')
@@ -558,14 +562,14 @@ const controller = {
 
     const newGameBtn = document.querySelector('#New-btn')
     newGameBtn.addEventListener('click', () => {
-      view.stopRenderWin()
-      view.stopRenderLose()
       utility.cleanLastGameData()
       controller.removeListeners() //監聽器要拿掉 因為createGame會綁上
       alert('New Game Start!')
       controller.createGame(model.gameDifficulty.rows, model.gameDifficulty.columns, model.gameDifficulty.mines)
       controller.stopTimer()
       controller.resetTimer()
+      view.stopRenderWin()
+      view.stopRenderLose()
     })
 
     const godModeBtn = document.querySelector('#GM-btn')
