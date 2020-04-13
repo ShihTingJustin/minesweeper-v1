@@ -20,6 +20,7 @@ const view = {
         model.squarePositions.push(`${i}-${j}`)
       }
     }
+
     const style = document.getElementsByTagName('style')[0]
     let row = ''
     for (let i = 1; i <= rows; i++) {
@@ -61,6 +62,7 @@ const view = {
   showFlagCounter() {
     document.getElementById('flag-counter').innerHTML = `<i id='info-flag' class="fas fa-flag" style='margin-right: 6px;'></i>${model.mines.length - model.flags.length}`
   },
+
   /**
    * renderTime()
    * 顯示經過的遊戲時間在畫面上。
@@ -77,17 +79,9 @@ const view = {
     title.classList.add('win-title')
     title.innerText = 'Congratulations'
 
-    const endTime = Date.now() + seconds * 1000 //結束的時間戳記
-
-    model.winTmId = setInterval(() => {
-      const remainingSeconds = Math.floor(endTime - Date.now())
+    setInterval(() => {
       container.classList.toggle('winner-border')
       title.classList.toggle('win-title')
-
-      if (remainingSeconds < 0) {
-        clearInterval(model.winTmId)
-        return
-      }
     }, 250)
   },
   stopRenderWin() {
@@ -100,12 +94,16 @@ const view = {
   },
   renderLose() {
     const title = document.querySelector('.title')
-    title.classList.add('lose-title')
+    const newGameBtn = document.querySelector('#New-btn')
+    title.classList.add('lose-title', 'move')
     title.innerText = 'Give it Another Try'
+    newGameBtn.classList.add('lose-newGameBtn')
   },
   stopRenderLose() {
     const title = document.querySelector('.title')
+    const newGameBtn = document.querySelector('#New-btn')
     title.classList.remove('lose-title')
+    newGameBtn.classList.remove('lose-newGameBtn')
     title.innerText = 'Minesweeper'
   },
   /**
@@ -154,6 +152,7 @@ const view = {
     }
   }
 }
+
 
 const controller = {
   currentState: GAME_STATE.Playing,
@@ -231,6 +230,7 @@ const controller = {
         return
     }
   },
+
   /**
    * setMinesAndFields()
    * 設定格子的內容，以及產生地雷的編號。
@@ -253,6 +253,7 @@ const controller = {
     }
     view.showFlagCounter()
   },
+
   /**
    * getFieldData()
    * 取得單一格子的內容，決定這個格子是海洋還是號碼，
@@ -302,6 +303,7 @@ const controller = {
       return
     }
   },
+
   /**
    * dig()
    * 使用者挖格子時要執行的函式，
