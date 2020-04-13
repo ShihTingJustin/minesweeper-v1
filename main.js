@@ -20,7 +20,6 @@ const view = {
         model.squarePositions.push(`${i}-${j}`)
       }
     }
-
     const style = document.getElementsByTagName('style')[0]
     let row = ''
     for (let i = 1; i <= rows; i++) {
@@ -62,7 +61,6 @@ const view = {
   showFlagCounter() {
     document.getElementById('flag-counter').innerHTML = `<i id='info-flag' class="fas fa-flag" style='margin-right: 6px;'></i>${model.mines.length - model.flags.length}`
   },
-
   /**
    * renderTime()
    * 顯示經過的遊戲時間在畫面上。
@@ -157,7 +155,6 @@ const view = {
   }
 }
 
-
 const controller = {
   currentState: GAME_STATE.Playing,
   /**
@@ -234,7 +231,6 @@ const controller = {
         return
     }
   },
-
   /**
    * setMinesAndFields()
    * 設定格子的內容，以及產生地雷的編號。
@@ -257,7 +253,6 @@ const controller = {
     }
     view.showFlagCounter()
   },
-
   /**
    * getFieldData()
    * 取得單一格子的內容，決定這個格子是海洋還是號碼，
@@ -307,7 +302,6 @@ const controller = {
       return
     }
   },
-
   /**
    * dig()
    * 使用者挖格子時要執行的函式，
