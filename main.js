@@ -440,29 +440,38 @@ const controller = {
 
     modal.addEventListener('keypress', e => {
       if (beginner.checked && e.keyCode === 13) {
+        saveBtn.click()
         // controller.optionBeginner(9, 9, 10)
       } else if (master.checked && e.keyCode === 13) {
+        saveBtn.click()
         // controller.optionBeginner(16, 16, 40)
       } else if (legend.checked && e.keyCode === 13) {
+        saveBtn.click()
         // controller.optionBeginner(16, 30, 99)
       }
-      saveBtn.click()
     })
 
     modal.addEventListener('click', e => {
       if (beginner.checked) {
+        saveBtn.setAttribute('data-dismiss', 'nothing')
         if (e.target.id === 'modal-save-btn') {
           controller.optionBeginner(9, 9, 10)
+          saveBtn.setAttribute('data-dismiss', 'modal')
         }
       } else if (master.checked) {
+        saveBtn.setAttribute('data-dismiss', 'nothing')
         if (e.target.id === 'modal-save-btn') {
           controller.optionMaster(16, 16, 40)
+          saveBtn.setAttribute('data-dismiss', 'modal')
         }
       } else if (legend.checked) {
+        saveBtn.setAttribute('data-dismiss', 'nothing')
         if (e.target.id === 'modal-save-btn') {
           controller.optionMaster(16, 30, 99)
+          saveBtn.setAttribute('data-dismiss', 'modal')
         }
       } else if (custom.checked) {
+        saveBtn.setAttribute('data-dismiss', 'nothing')
         if (e.target.id === 'modal-save-btn') {
           const rowInput = document.querySelector('#custom-row')
           const columnInput = document.querySelector('#custom-column')
@@ -550,11 +559,10 @@ const controller = {
             view.stopRenderWin()
             view.stopRenderLose()
             controller.startNewGame(rowInput.value, columnInput.value, mineInput.value)
+            saveBtn.setAttribute('data-dismiss', 'modal')
           }
-
         }
       }
-      saveBtn.setAttribute('data-dismiss', 'modal')
     })
 
     //點擊輸入框就會選取custom
