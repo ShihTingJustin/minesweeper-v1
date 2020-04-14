@@ -415,6 +415,21 @@ const controller = {
     model.timer = 0
     view.renderTimer()
   },
+  optionBeginner(rows, columns, mines) {
+    view.stopRenderWin()
+    view.stopRenderLose()
+    controller.startNewGame(rows, columns, mines)
+  },
+  optionMaster(rows, columns, mines) {
+    view.stopRenderWin()
+    view.stopRenderLose()
+    controller.startNewGame(rows, columns, mines)
+  },
+  optionLegend(rows, columns, mines) {
+    view.stopRenderWin()
+    view.stopRenderLose()
+    controller.startNewGame(rows, columns, mines)
+  },
   modalGame() {
     const modal = document.querySelector('.modal-content')
     const beginner = document.getElementById('beginner')
@@ -423,27 +438,29 @@ const controller = {
     const custom = document.getElementById('custom')
     const saveBtn = document.querySelector('#modal-save-btn')
 
+    modal.addEventListener('keypress', e => {
+      if (beginner.checked && e.keyCode === 13) {
+        // controller.optionBeginner(9, 9, 10)
+      } else if (master.checked && e.keyCode === 13) {
+        // controller.optionBeginner(16, 16, 40)
+      } else if (legend.checked && e.keyCode === 13) {
+        // controller.optionBeginner(16, 30, 99)
+      }
+      saveBtn.click()
+    })
+
     modal.addEventListener('click', e => {
       if (beginner.checked) {
         if (e.target.id === 'modal-save-btn') {
-          view.stopRenderWin()
-          view.stopRenderLose()
-          controller.startNewGame(9, 9, 10)
-          saveBtn.setAttribute('data-dismiss', 'modal')
+          controller.optionBeginner(9, 9, 10)
         }
       } else if (master.checked) {
         if (e.target.id === 'modal-save-btn') {
-          view.stopRenderWin()
-          view.stopRenderLose()
-          controller.startNewGame(16, 16, 40)
-          saveBtn.setAttribute('data-dismiss', 'modal')
+          controller.optionMaster(16, 16, 40)
         }
       } else if (legend.checked) {
         if (e.target.id === 'modal-save-btn') {
-          view.stopRenderWin()
-          view.stopRenderLose()
-          controller.startNewGame(16, 30, 99)
-          saveBtn.setAttribute('data-dismiss', 'modal')
+          controller.optionMaster(16, 30, 99)
         }
       } else if (custom.checked) {
         if (e.target.id === 'modal-save-btn') {
@@ -533,11 +550,11 @@ const controller = {
             view.stopRenderWin()
             view.stopRenderLose()
             controller.startNewGame(rowInput.value, columnInput.value, mineInput.value)
-            saveBtn.setAttribute('data-dismiss', 'modal')
           }
 
         }
       }
+      saveBtn.setAttribute('data-dismiss', 'modal')
     })
 
     //點擊輸入框就會選取custom
