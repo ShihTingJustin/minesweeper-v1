@@ -91,6 +91,8 @@ const view = {
     container.classList.remove('winner-border')
     title.classList.remove('win-title')
     title.innerText = 'Minesweeper'
+    clearInterval(model.winTmId)
+
   },
   renderLose() {
     const title = document.querySelector('.title')
@@ -105,6 +107,7 @@ const view = {
     title.classList.remove('lose-title')
     newGameBtn.classList.remove('lose-newGameBtn')
     title.innerText = 'Minesweeper'
+    clearInterval(model.loseTmId)
   },
   /**
    * showBoard()
@@ -546,8 +549,8 @@ const controller = {
     })
   },
   startNewGame(rows, columns, mines) {
-    view.renderWin()
-    view.renderLose()
+    view.stopRenderWin()
+    view.stopRenderLose()
     utility.cleanLastGameData()
     controller.removeListeners() //監聽器要拿掉 因為createGame會綁上
     alert('New Game Start!')
@@ -604,6 +607,8 @@ const controller = {
 
 const model = {
   winTmId: 0,
+
+  loseTmId: 0,
 
   gameDifficulty: { rows: 0, columns: 0, mines: 0 },
 
